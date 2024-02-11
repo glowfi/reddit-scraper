@@ -354,7 +354,9 @@ async def getSubredditsByTopics(topic, rate_limit):
 async def main():
     tasks = []
     rate_limit = asyncio.Semaphore(int(config.get("WORKERS")))
-    for topic in list(set(topics)):
+    topicsize = int(config.get("TOPIC_SIZE"))
+
+    for topic in list(set(topics[:topicsize])):
         tasks.append(getSubredditsByTopics(topic, rate_limit))
 
     await asyncio.gather(*tasks)

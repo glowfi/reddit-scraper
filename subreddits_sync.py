@@ -248,8 +248,9 @@ bySize
 
 # Get all subreddit names based on the topics above
 master = {}
+topicsize = int(config.get("TOPIC_SIZE"))
 
-for topic in topics:
+for topic in list(set(topics[:topicsize])):
     subreddit = reddit.subreddits.search(topic)
     finalData = []
     TOTAl_SUBREDDITS_PER_TOPICS = int(config.get("TOTAl_SUBREDDITS_PER_TOPICS"))
