@@ -9,6 +9,7 @@ from dotenv import dotenv_values
 import aiohttp
 import random
 import string
+from aiolimiter import AsyncLimiter
 
 
 # Load DOTENV
@@ -353,7 +354,7 @@ async def getSubredditsByTopics(topic, rate_limit):
 
 async def main():
     tasks = []
-    rate_limit = asyncio.Semaphore(int(config.get("WORKERS")))
+    rate_limit = AsyncLimiter(int(config.get("HITS_SUB")), int(config.get("TIME_SUB")))
     topicsize = int(config.get("TOPIC_SIZE"))
 
     for topic in list(set(topics[:topicsize])):

@@ -11,6 +11,7 @@ import random
 from dotenv import dotenv_values
 import aiohttp
 import asyncio
+from aiolimiter import AsyncLimiter
 
 # Load DOTENV
 config = dotenv_values(".env")
@@ -44,7 +45,7 @@ headers = {
 }
 
 
-async def getComments(url, usersArr, seenUsers, rate_limit):
+async def getComments(url, topic, rate_limit):
     async with rate_limit:
         print("url:", url)
         try:
@@ -81,56 +82,7 @@ async def getComments(url, usersArr, seenUsers, rate_limit):
                     tmp["comment_id"] = comm.get("data", {}).get("id", "")
                     tmp["comment"] = comm.get("data", {}).get("body", "")
                     tmp["comment_ups"] = comm.get("data", {}).get("ups", "")
-
-                    if tmp["author_id"] and tmp["author_id"] not in seenUsers:
-                        async with asyncpraw.Reddit(
-                            client_id=client_id,
-                            client_secret=client_secret,
-                            user_agent=getUserAgent(),
-                            username=config.get("username"),
-                            password=config.get("password"),
-                            ratelimit_seconds=300,
-                        ) as reddit:
-                            redditor_name = tmp["author"]
-                            redditor = await reddit.redditor(redditor_name, fetch=True)
-                            await redditor.load()
-                            await redditor.subreddit.load()
-                            # await redditor.load()
-                            # print(redditor_name)
-                            print(redditor.__dict__)
-                            trophies = await getTrophies()
-
-                            usersArr.append(
-                                {
-                                    "id": redditor.id,
-                                    "username": tmp["author"],
-                                    "password": "pass",
-                                    "cakeDay": redditor.created_utc,
-                                    "cakeDayHuman": getDate(redditor.created_utc),
-                                    "age": epoch_age(redditor.created_utc),
-                                    "avatar_img": redditor.icon_img,
-                                    "banner_img": redditor.subreddit.banner_img,
-                                    "publicDescription": redditor.subreddit.public_description,
-                                    "over18": redditor.subreddit.over18,
-                                    "keycolor": redditor.subreddit.key_color,
-                                    "primarycolor": redditor.subreddit.primary_color,
-                                    "iconcolor": redditor.subreddit.icon_color,
-                                    "subreddits_member": [
-                                        [tmp["subreddit_id"], tmp["subreddit_name"]]
-                                    ],
-                                    "trophies": random.choices(
-                                        trophies, k=random.randint(1, 5)
-                                    ),
-                                }
-                            )
-                            seenUsers[tmp["author_id"]] = True
-
-                    elif tmp["author_id"] and tmp["author_id"] in seenUsers:
-                        for user in usersArr:
-                            subreddit_lists = user.get("subreddits_member", [])
-                            data = [tmp["subreddit_id"], tmp["subreddit_name"]]
-                            if data not in subreddit_lists:
-                                subreddit_lists.append(data)
+                    tmp["category"] = topic
 
                     for i in tmp:
                         if tmp[i] == "":
@@ -383,7 +335,7 @@ with open("./subreddits.json", "r") as f:
     subredditJSON = json.load(f)
 
 
-async def getPostData_subreddit(topics, currSubreddit, rate_limit):
+async def getPostData_subreddit(topic, currSubreddit, rate_limit):
     async with rate_limit:
         subredditName = currSubreddit["title"].replace("r/", "")
         async with asyncpraw.Reddit(
@@ -434,8 +386,7 @@ async def getPostData_subreddit(topics, currSubreddit, rate_limit):
                         ),
                         "comments": await getComments(
                             f"https://reddit.com{obj.get('permalink','')}.json",
-                            usersArr,
-                            seenUsers,
+                            topic,
                             rate_limit,
                         ),
                         "media_metadata": dat,
@@ -475,8 +426,7 @@ async def getPostData_subreddit(topics, currSubreddit, rate_limit):
                         ),
                         "comments": await getComments(
                             f"https://reddit.com{obj.get('permalink','')}.json",
-                            usersArr,
-                            seenUsers,
+                            topic,
                             rate_limit,
                         ),
                         "media_content": dat,
@@ -494,21 +444,19 @@ async def getPostData_subreddit(topics, currSubreddit, rate_limit):
 
 async def main():
     tasks = []
-    rate_limit = asyncio.Semaphore(int(config.get("WORKERS")))
-    for topics in subredditJSON:
-        for currSubreddit in subredditJSON[topics]:
-            tasks.append(getPostData_subreddit(topics, currSubreddit, rate_limit))
+    rate_limit = AsyncLimiter(
+        int(config.get("HITS_POSTS")), int(config.get("TIME_POSTS"))
+    )
+    for topic in subredditJSON:
+        for currSubreddit in subredditJSON[topic]:
+            tasks.append(getPostData_subreddit(topic, currSubreddit, rate_limit))
 
     await asyncio.gather(*tasks)
 
 
 if __name__ == "__main__":
     asyncio.run(main())
-    # print(finalPostsData, usersArr)
+
     # Create Posts
     with open("posts.json", "w") as f:
         json.dump(finalPostsData, f, indent=4)
-
-    # Create Users
-    with open("users.json", "w") as f:
-        json.dump(usersArr, f, indent=4)
