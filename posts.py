@@ -418,9 +418,14 @@ async def getPostData_subreddit(topic, currSubreddit, rate_limit):
 
             async for posts in subreddit.hot(limit=POSTS_PER_SUBREDDIT):
                 obj = posts.__dict__
-                submission = await reddit.submission(id=obj["id"])
-                print(submission.title)
-                data = vars(submission)
+
+                try:
+                    submission = await reddit.submission(id=obj["id"])
+                    print(submission.title)
+                    data = vars(submission)
+                except Exception as e:
+                    with open("noposts.txt", "a+") as f:
+                        f.write(f"{str(e)}  {str(id)}")
 
                 postBody = data["selftext"]
                 postHTML = data["selftext_html"]
