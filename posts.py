@@ -45,6 +45,7 @@ headers = {
 }
 
 
+# Add user
 def add(author, author_id, allUsers, subreddit, subredditID):
     if author_id and author_id not in seenUsers:
         tmp = {
@@ -69,6 +70,7 @@ def add(author, author_id, allUsers, subreddit, subredditID):
                     subreddit_lists.append(data)
 
 
+# Get all user comment
 async def getComments(url, topic, rate_limit):
     async with rate_limit:
         print("url:", url)
@@ -138,12 +140,14 @@ async def getComments(url, topic, rate_limit):
                     tmp["parent_comment_id"] = parent_id
                     tmp["comment_id"] = comm.get("data", {}).get("id", "")
                     tmp["comment"] = comm.get("data", {}).get("body", "")
-                    tmp["comment_html"] = (
-                        comm.get("data", {})
-                        .get("body_html", "")
-                        .replace("&lt;", "<")
-                        .replace("&gt;", ">")
-                    )
+                    tmp["comment_html"] = comm.get("data", {}).get("body_html", "")
+                    if tmp["comment_html"]:
+                        tmp["comment_html"] = (
+                            tmp["comment_html"]
+                            .replace("&lt;", "<")
+                            .replace("&gt;", ">")
+                        )
+
                     tmp["comment_ups"] = comm.get("data", {}).get("ups", "")
                     tmp["category"] = topic
 
@@ -305,6 +309,7 @@ def getDate(timestamp):
     return dt.strftime("%d %B %Y")
 
 
+# Trophies
 async def getTrophies():
     url = "https://www.reddit.com/wiki/trophies/"
     headers = {
@@ -340,6 +345,7 @@ async def getTrophies():
     return master
 
 
+# Awards
 async def getAwards():
     url = "https://asyncpraw.readthedocs.io/en/latest/code_overview/models/submission.html#asyncpraw.models.Submission"
     headers = {
@@ -413,13 +419,13 @@ async def getPostData_subreddit(topic, currSubreddit, rate_limit):
             async for posts in subreddit.hot(limit=POSTS_PER_SUBREDDIT):
                 obj = posts.__dict__
                 submission = await reddit.submission(id=obj["id"])
-                print(submission.title, obj["permalink"])
+                print(submission.title)
                 data = vars(submission)
 
                 postBody = data["selftext"]
-                postHTML = (
-                    data["selftext_html"].replace("&lt;", "<").replace("&gt;", ">")
-                )
+                postHTML = data["selftext_html"]
+                if postHTML:
+                    postHTML = postHTML.replace("&lt;", "<").replace("&gt;", ">")
 
                 dat = post_content(data, submission)
 

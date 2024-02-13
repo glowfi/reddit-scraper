@@ -50,45 +50,45 @@ headers = {
 topics = [
     "Activism",
     "AddictionSupport",
-    "AnimalsandPets",
+    "Animals and Pets",
     "Art",
     "BeautyandMakeup",
     "Business,Economics,andFinance",
     "Careers",
-    "CarsandMotorVehicles",
+    "Cars and MotorVehicles",
     "Celebrity",
     "CraftsandDIY",
     "Crypto",
-    "Culture,Race,andEthnicity",
-    "EthicsandPhilosophy",
-    "FamilyandRelationships",
+    "Culture,Race,and Ethnicity",
+    "Ethics and Philosophy",
+    "Family and Relationships",
     "Fashion",
-    "FitnessandNutrition",
-    "FoodandDrink",
+    "Fitness and Nutrition",
+    "Food and Drink",
     "Funny/Humor",
     "Gaming",
     "Gender",
     "History",
     "Hobbies",
-    "HomeandGarden",
-    "InternetCultureandMemes",
+    "Home and Garden",
+    "InternetCulture and Memes",
     "Law",
-    "LearningandEducation",
-    "MarketplaceandDeals",
-    "MatureThemesandAdultContent",
-    "MedicalandMentalHealth",
-    "Men'sHealth",
+    "Learning and Education",
+    "Marketplace and Deals",
+    "MatureThemes and AdultContent",
+    "Medical and MentalHealth",
+    "Mens Health",
     "Meta/Reddit",
     "Military",
     "Movies",
     "Music",
-    "OutdoorsandNature",
+    "Outdoors and Nature",
     "Place",
-    "PodcastsandStreamers",
+    "Podcasts and Streamers",
     "Politics",
     "Programming",
     "Reading,Writing,andLiterature",
-    "ReligionandSpirituality",
+    "Religion and Spirituality",
     "Science",
     "SexualOrientation",
     "Sports",
@@ -247,30 +247,6 @@ async def getModeratorsNames(redditName, rate_limit):
                     [moderator.name, str(moderator.id).replace("t2_", "")]
                 )
     return moderators
-
-
-# Subreddit schema
-"""Subreddit
-id id
-title title
-about public_description
-logoUrl community_icon
-bannerUrl banner_background_image
-category category
-rules
-flairs
-anchors
-buttonColor key_color
-headerColor primary_color
-bannerbackgroundColor banner_background_color
-moderators
-creationDate created_utc
-members subscribers
-spoilers_enabled spoilers_enabled
-over18 over18
-online
-bySize
-"""
 
 
 # Get all subreddit names based on the topics above
