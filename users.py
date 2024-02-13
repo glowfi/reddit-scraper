@@ -3,12 +3,9 @@
 import json
 from dotenv import dotenv_values
 import uuid
-import requests
-from bs4 import BeautifulSoup
 import time
 from datetime import timedelta
 from datetime import datetime
-import random
 import asyncpraw
 from aiolimiter import AsyncLimiter
 import asyncio
@@ -53,38 +50,7 @@ def getDate(timestamp):
     return dt.strftime("%d %B %Y")
 
 
-def getTrophies():
-    url = "https://www.reddit.com/wiki/trophies/"
-    headers = {
-        "User-Agent": f"{getUserAgent()}",
-    }
-    response = requests.get(url, headers=headers)
-
-    html_content = response.content
-    soup = BeautifulSoup(html_content, "html.parser")
-
-    master = [
-        {
-            "title": "Bellwether",
-            "image_link": "https://a.thumbs.redditmedia.com/GnIq6cHQCTUioRxU4opnYO0PJibxEBb_K3cyln1tXJ0.png",
-        }
-    ]
-    tables = soup.find_all("table")
-    for table in tables:
-        for row in table.find_all("tr"):
-            # Extract image link
-            image_link = row.find("img")["src"] if row.find("img") else None
-            tmp = {}
-            if image_link:
-                tmp["image_link"] = f"https:{image_link}"
-                text = row.get_text().strip("\n")
-                title = text.split("\n")[0]
-                tmp["title"] = title
-                master.append(tmp)
-    return master
-
-
-async def getRedditorInfo(redditor_name, aid, usersArr, sid, sname, rate_limit):
+async def getRedditorInfo(redditor_name, aid, userInfo, rate_limit):
     async with rate_limit:
         async with asyncpraw.Reddit(
             client_id=client_id,
@@ -105,71 +71,60 @@ async def getRedditorInfo(redditor_name, aid, usersArr, sid, sname, rate_limit):
 
             if not hasattr(redditor, "id"):
                 print(f"{redditor_name} Account Suspended")
-                usersArr.append(
-                    {
-                        "id": aid,
-                        "username": redditor_name,
-                        "password": "pass",
-                        "cakeDay": "NA",
-                        "cakeDayHuman": "NA",
-                        "age": "NA",
-                        "avatar_img": "NA",
-                        "banner_img": "NA",
-                        "publicDescription": "NA",
-                        "over18": "NA",
-                        "keycolor": "NA",
-                        "primarycolor": "NA",
-                        "iconcolor": "NA",
-                        "subreddits_member": [[sid, sname]],
-                        "trophies": random.choices(trophies, k=random.randint(1, 5)),
-                        "supended": True,
-                    }
-                )
+                userInfo[aid]["cakeDay"] = "NA"
+                userInfo[aid]["cakeDayHuman"] = "NA"
+                userInfo[aid]["age"] = "NA"
+                userInfo[aid]["avatar_img"] = "NA"
+                userInfo[aid]["banner_img"] = "NA"
+                userInfo[aid]["publicDescription"] = "NA"
+                userInfo[aid]["over18"] = "NA"
+                userInfo[aid]["keycolor"] = "NA"
+                userInfo[aid]["primarycolor"] = "NA"
+                userInfo[aid]["iconcolor"] = "NA"
+                userInfo[aid]["supended"] = True
             else:
                 try:
                     print(f"{redditor_name}")
                     await redditor.load()
                     if hasattr(redditor, "id"):
                         await redditor.subreddit.load()
+                        print(f"Got Back {redditor_name}!")
                 except Exception as e:
                     print("Handled Exception!", e)
 
                 if redditor:
                     try:
-                        usersArr.append(
-                            {
-                                "id": redditor.id,
-                                "username": redditor_name,
-                                "password": "pass",
-                                "cakeDay": redditor.created_utc,
-                                "cakeDayHuman": getDate(redditor.created_utc),
-                                "age": epoch_age(redditor.created_utc),
-                                "avatar_img": redditor.icon_img,
-                                "banner_img": redditor.subreddit.banner_img
-                                if redditor.subreddit
-                                else "",
-                                "publicDescription": redditor.subreddit.public_description
-                                if redditor.subreddit
-                                else "",
-                                "over18": redditor.subreddit.over18
-                                if redditor.subreddit
-                                else "",
-                                "keycolor": redditor.subreddit.key_color
-                                if redditor.subreddit
-                                else "",
-                                "primarycolor": redditor.subreddit.primary_color
-                                if redditor.subreddit
-                                else "",
-                                "iconcolor": redditor.subreddit.icon_color
-                                if redditor.subreddit
-                                else "",
-                                "subreddits_member": [[sid, sname]],
-                                "trophies": random.choices(
-                                    trophies, k=random.randint(1, 5)
-                                ),
-                                "supended": False,
-                            }
+                        userInfo[aid]["cakeDay"] = redditor.created_utc
+                        userInfo[aid]["cakeDayHuman"] = getDate(redditor.created_utc)
+                        userInfo[aid]["age"] = epoch_age(redditor.created_utc)
+                        userInfo[aid]["avatar_img"] = redditor.icon_img
+                        userInfo[aid]["banner_img"] = (
+                            redditor.subreddit.banner_img if redditor.subreddit else ""
                         )
+                        userInfo[aid]["publicDescription"] = (
+                            redditor.subreddit.public_description
+                            if redditor.subreddit
+                            else ""
+                        )
+                        userInfo[aid]["over18"] = (
+                            redditor.subreddit.over18 if redditor.subreddit else ""
+                        )
+                        userInfo[aid]["keycolor"] = (
+                            redditor.subreddit.key_color if redditor.subreddit else ""
+                        )
+                        userInfo[aid]["primarycolor"] = (
+                            redditor.subreddit.primary_color
+                            if redditor.subreddit
+                            else ""
+                        )
+                        userInfo[aid]["iconcolor"] = (
+                            redditor.subreddit.icon_color if redditor.subreddit else ""
+                        )
+                        userInfo[aid]["supended"] = False
+
+                        total_users[0] -= 1
+                        print(f"More {total_users} left ...")
+
                     except Exception as e:
                         with open("user_errors.txt", "a") as fp:
                             fp.write(
@@ -178,61 +133,29 @@ async def getRedditorInfo(redditor_name, aid, usersArr, sid, sname, rate_limit):
                         print(f"Error with {redditor_name}")
 
 
-async def getUsers(usersArr, seenUsers, postsData, rate_limit):
-    async with rate_limit:
-
-        async def helper(data):
-            for comments in data:
-                authorID = comments["author_id"]
-                author = comments["author"]
-
-                if authorID and authorID not in seenUsers:
-                    await getRedditorInfo(
-                        author,
-                        authorID,
-                        usersArr,
-                        postsData["subreddit_id"],
-                        postsData["subreddit"],
-                        rate_limit,
-                    )
-                    seenUsers[authorID] = True
-                elif authorID and authorID in seenUsers:
-                    for user in usersArr:
-                        subreddit_lists = user.get("subreddits_member", [])
-                        data = [postsData["subreddit_id"], postsData["subreddit"]]
-                        if data not in subreddit_lists:
-                            subreddit_lists.append(data)
-
-                await helper(comments["replies"])
-
-        if postsData and "comments" in postsData and postsData["comments"]:
-            await helper(postsData["comments"])
+with open("./users.json") as f:
+    userData = json.load(f)
 
 
-# Global variables
-usersArr = []
-seenUsers = {}
-trophies = getTrophies()
+HIT_USERS = int(config.get("HITS_USERS"))
+TIME_USERS = int(config.get("TIME_USERS"))
+total_users = [len(userData)]
 
 
 async def main():
-    with open("./posts.json", "r") as fp:
-        posts = json.load(fp)
-        tasks = []
-        rate_limit = AsyncLimiter(
-            int(config.get("HITS_USERS")), int(config.get("TIME_USERS"))
-        )
+    tasks = []
+    rate_limit = AsyncLimiter(HIT_USERS, TIME_USERS)
+    for user in userData:
+        redditor_name = userData.get(user, {}).get("username", "")
+        id = userData.get(user, {}).get("id", "")
+        if redditor_name and id:
+            tasks.append(getRedditorInfo(redditor_name, id, userData, rate_limit))
 
-        for post in posts:
-            if "comments" in post and post:
-                tasks.append(getUsers(usersArr, seenUsers, post, rate_limit))
-
-        await asyncio.gather(*tasks)
-
-    # Create Users
-    with open("users.json", "w") as f:
-        json.dump(usersArr, f, indent=4)
+    await asyncio.gather(*tasks)
 
 
 if __name__ == "__main__":
     asyncio.run(main())
+    with open("./users.json", "w") as f:
+        json.dump(userData, f)
+    len(userData)

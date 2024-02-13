@@ -45,18 +45,75 @@ headers = {
 }
 
 
+def add(author, author_id, allUsers, subreddit, subredditID):
+    if author_id and author_id not in seenUsers:
+        tmp = {
+            "id": author_id,
+            "username": author,
+            "password": "pass",
+            "subreddits_member": [[subredditID, subreddit]]
+            if subreddit and subredditID
+            else [],
+            "trophies": random.choices(trophies, k=random.randint(1, 5)),
+        }
+
+        allUsers[author_id] = dict(sorted(tmp.copy().items()))
+        seenUsers.add(author_id)
+
+    else:
+        for user in allUsers:
+            subreddit_lists = allUsers.get(user).get("subreddits_member", [])
+            if subredditID and subreddit:
+                data = [subredditID, subreddit]
+                if data not in subreddit_lists:
+                    subreddit_lists.append(data)
+
+
 async def getComments(url, topic, rate_limit):
     async with rate_limit:
         print("url:", url)
+        res_data = []
         try:
-            res_data = []
             async with aiohttp.ClientSession() as session:
                 async with session.get(
                     url=url,
                     headers=headers,
                 ) as response:
                     resData = await response.json()
-                    res_data = resData[1].get("data", []).get("children", [])
+                    res_data = resData[1].get("data", {}).get("children", [])
+                    currPostAuthor = (
+                        resData[0]
+                        .get("data", {})
+                        .get("children", [0])[0]
+                        .get("data", [])
+                        .get("author", "")
+                    )
+                    currPostAuthorID = (
+                        resData[0]
+                        .get("data", {})
+                        .get("children", [0])[0]
+                        .get("data", [])
+                        .get("author_fullname", "")
+                        .replace("t2_", "")
+                    )
+                    print("ALERT .....", currPostAuthor, currPostAuthorID)
+                    if currPostAuthor and currPostAuthorID:
+                        add(
+                            currPostAuthor,
+                            currPostAuthorID,
+                            allUsers,
+                            resData[0]
+                            .get("data", {})
+                            .get("children", [0])[0]
+                            .get("data", [])
+                            .get("subreddit", ""),
+                            resData[0]
+                            .get("data", {})
+                            .get("children", [0])[0]
+                            .get("data", [])
+                            .get("subreddit_id", "")
+                            .replace("t5_", ""),
+                        )
 
             async def helper(_res_data, parent_id):
                 finalData = []
@@ -92,7 +149,16 @@ async def getComments(url, topic, rate_limit):
                     if notGotValues >= 4:
                         continue
 
-                    print(tmp)
+                    author, authorID = tmp["author"], tmp["author_id"]
+
+                    if author and authorID:
+                        add(
+                            author,
+                            authorID,
+                            allUsers,
+                            tmp["subreddit_name"],
+                            tmp["subreddit_id"],
+                        )
                     try:
                         tmp["replies"] = await helper(
                             comm.get("data", {})
@@ -112,6 +178,7 @@ async def getComments(url, topic, rate_limit):
             return allComments
 
         except Exception as e:
+            print("HERE: ...", len(res_data), url)
             print("Error Occured: ", e)
 
 
@@ -244,7 +311,6 @@ async def getTrophies():
             url=url,
             headers=headers,
         ) as response:
-            # html_content = response.content
             html_content = await response.read()
             soup = BeautifulSoup(html_content.decode("utf-8"), "html5lib")
 
@@ -326,16 +392,6 @@ def unix_to_relative_time(unix_time):
             return "just now"
 
 
-finalPostsData = []
-usersArr = []
-seenUsers = {}
-POSTS_PER_SUBREDDIT = int(config.get("POSTS_PER_SUBREDDIT"))
-
-subredditJSON = []
-with open("./subreddits.json", "r") as f:
-    subredditJSON = json.load(f)
-
-
 async def getPostData_subreddit(topic, currSubreddit, rate_limit):
     async with rate_limit:
         subredditName = currSubreddit["title"].replace("r/", "")
@@ -382,9 +438,7 @@ async def getPostData_subreddit(topic, currSubreddit, rate_limit):
                         "postflaircolor": data.get("link_flair_background_color", ""),
                         "num_comments": data.get("num_comments", ""),
                         "ups": data.get("ups", ""),
-                        "awards": random.choices(
-                            await getAwards(), k=random.randint(0, 4)
-                        ),
+                        "awards": random.choices(awards, k=random.randint(0, 4)),
                         "comments": await getComments(
                             f"https://reddit.com{obj.get('permalink','')}.json",
                             topic,
@@ -422,9 +476,7 @@ async def getPostData_subreddit(topic, currSubreddit, rate_limit):
                         "postflaircolor": data.get("link_flair_background_color", ""),
                         "num_comments": data.get("num_comments", ""),
                         "ups": data.get("ups", ""),
-                        "awards": random.choices(
-                            await getAwards(), k=random.randint(0, 4)
-                        ),
+                        "awards": random.choices(awards, k=random.randint(0, 4)),
                         "comments": await getComments(
                             f"https://reddit.com{obj.get('permalink','')}.json",
                             topic,
@@ -444,11 +496,24 @@ async def getPostData_subreddit(topic, currSubreddit, rate_limit):
                     finalPostsData.append(dict(sorted(post_data.items())))
 
 
+async def completeTrophies(a, t):
+    val1 = await getAwards()
+    val2 = await getTrophies()
+
+    a.append(val1)
+    t.append(val2)
+
+
+async def waiter(a, t):
+    await completeTrophies(a, t)
+
+
 async def main():
     tasks = []
     rate_limit = AsyncLimiter(
         int(config.get("HITS_POSTS")), int(config.get("TIME_POSTS"))
     )
+
     for topic in subredditJSON:
         for currSubreddit in subredditJSON[topic]:
             tasks.append(getPostData_subreddit(topic, currSubreddit, rate_limit))
@@ -457,8 +522,28 @@ async def main():
 
 
 if __name__ == "__main__":
+    finalPostsData = []
+    allUsers = {}
+    seenUsers = set()
+    awards, trophies = [], []
+    POSTS_PER_SUBREDDIT = int(config.get("POSTS_PER_SUBREDDIT"))
+
+    subredditJSON = []
+    with open("./subreddits.json", "r") as f:
+        subredditJSON = json.load(f)
+
+    # Get Trophies and awards
+    asyncio.run(waiter(awards, trophies))
+    awards = awards[0]
+    trophies = trophies[0]
+
+    # Get Posts
     asyncio.run(main())
 
     # Create Posts
     with open("posts.json", "w") as f:
         json.dump(finalPostsData, f, indent=4)
+
+    # Create Users
+    with open("users.json", "w") as f:
+        json.dump(allUsers, f, indent=4)

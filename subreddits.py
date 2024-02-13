@@ -365,5 +365,6 @@ async def main():
 
 if __name__ == "__main__":
     asyncio.run(main())
+    master = dict(sorted(master.items()))
     with open("subreddits.json", "w") as fp:
         json.dump(master, fp, indent=4)
