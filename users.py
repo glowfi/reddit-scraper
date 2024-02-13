@@ -105,9 +105,6 @@ async def getRedditorInfo(redditor_name, aid, usersArr, sid, sname, rate_limit):
 
             if not hasattr(redditor, "id"):
                 print(f"{redditor_name} Account Suspended")
-                await redditor.load()
-                if hasattr(redditor, "id"):
-                    await redditor.subreddit.load()
                 usersArr.append(
                     {
                         "id": aid,
@@ -129,30 +126,56 @@ async def getRedditorInfo(redditor_name, aid, usersArr, sid, sname, rate_limit):
                     }
                 )
             else:
-                print(f"{redditor_name}")
-                await redditor.load()
-                if hasattr(redditor, "id"):
-                    await redditor.subreddit.load()
-                usersArr.append(
-                    {
-                        "id": redditor.id,
-                        "username": redditor_name,
-                        "password": "pass",
-                        "cakeDay": redditor.created_utc,
-                        "cakeDayHuman": getDate(redditor.created_utc),
-                        "age": epoch_age(redditor.created_utc),
-                        "avatar_img": redditor.icon_img,
-                        "banner_img": redditor.subreddit.banner_img,
-                        "publicDescription": redditor.subreddit.public_description,
-                        "over18": redditor.subreddit.over18,
-                        "keycolor": redditor.subreddit.key_color,
-                        "primarycolor": redditor.subreddit.primary_color,
-                        "iconcolor": redditor.subreddit.icon_color,
-                        "subreddits_member": [[sid, sname]],
-                        "trophies": random.choices(trophies, k=random.randint(1, 5)),
-                        "supended": False,
-                    }
-                )
+                try:
+                    print(f"{redditor_name}")
+                    await redditor.load()
+                    if hasattr(redditor, "id"):
+                        await redditor.subreddit.load()
+                except Exception as e:
+                    print("Handled Exception!", e)
+
+                if redditor:
+                    try:
+                        usersArr.append(
+                            {
+                                "id": redditor.id,
+                                "username": redditor_name,
+                                "password": "pass",
+                                "cakeDay": redditor.created_utc,
+                                "cakeDayHuman": getDate(redditor.created_utc),
+                                "age": epoch_age(redditor.created_utc),
+                                "avatar_img": redditor.icon_img,
+                                "banner_img": redditor.subreddit.banner_img
+                                if redditor.subreddit
+                                else "",
+                                "publicDescription": redditor.subreddit.public_description
+                                if redditor.subreddit
+                                else "",
+                                "over18": redditor.subreddit.over18
+                                if redditor.subreddit
+                                else "",
+                                "keycolor": redditor.subreddit.key_color
+                                if redditor.subreddit
+                                else "",
+                                "primarycolor": redditor.subreddit.primary_color
+                                if redditor.subreddit
+                                else "",
+                                "iconcolor": redditor.subreddit.icon_color
+                                if redditor.subreddit
+                                else "",
+                                "subreddits_member": [[sid, sname]],
+                                "trophies": random.choices(
+                                    trophies, k=random.randint(1, 5)
+                                ),
+                                "supended": False,
+                            }
+                        )
+                    except Exception as e:
+                        with open("user_errors.txt", "a") as fp:
+                            fp.write(
+                                str(redditor_name) + " " + str(e) + "\n",
+                            )
+                        print(f"Error with {redditor_name}")
 
 
 async def getUsers(usersArr, seenUsers, postsData, rate_limit):
@@ -182,7 +205,7 @@ async def getUsers(usersArr, seenUsers, postsData, rate_limit):
 
                 await helper(comments["replies"])
 
-        if "comments" in postsData and postsData:
+        if postsData and "comments" in postsData and postsData["comments"]:
             await helper(postsData["comments"])
 
 
@@ -200,7 +223,7 @@ async def main():
             int(config.get("HITS_USERS")), int(config.get("TIME_USERS"))
         )
 
-        for post in posts[:200]:
+        for post in posts:
             if "comments" in post and post:
                 tasks.append(getUsers(usersArr, seenUsers, post, rate_limit))
 

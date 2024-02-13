@@ -81,6 +81,7 @@ async def getComments(url, topic, rate_limit):
                     tmp["parent_comment_id"] = parent_id
                     tmp["comment_id"] = comm.get("data", {}).get("id", "")
                     tmp["comment"] = comm.get("data", {}).get("body", "")
+                    tmp["comment_html"] = comm.get("data", {}).get("body_html", "")
                     tmp["comment_ups"] = comm.get("data", {}).get("ups", "")
                     tmp["category"] = topic
 
@@ -439,7 +440,8 @@ async def getPostData_subreddit(topic, currSubreddit, rate_limit):
                         "link_type": False,
                     }
 
-                finalPostsData.append(dict(sorted(post_data.items())))
+                if post_data:
+                    finalPostsData.append(dict(sorted(post_data.items())))
 
 
 async def main():
