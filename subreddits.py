@@ -265,9 +265,9 @@ async def getSubredditsByTopics(topic, rate_limit):
             ratelimit_seconds=300,
         ) as reddit:
             finalData = []
-            TOTAl_SUBREDDITS_PER_TOPICS = int(config.get("TOTAl_SUBREDDITS_PER_TOPICS"))
+            TOTAL_SUBREDDITS_PER_TOPICS = int(config.get("TOTAL_SUBREDDITS_PER_TOPICS"))
             async for sreddit in reddit.subreddits.search(topic):
-                if TOTAl_SUBREDDITS_PER_TOPICS == 0:
+                if TOTAL_SUBREDDITS_PER_TOPICS == 0:
                     break
                 obj = sreddit.__dict__
                 if obj["subreddit_type"] == "private":
@@ -320,7 +320,7 @@ async def getSubredditsByTopics(topic, rate_limit):
                 tmp["spoilers_enabled"] = obj.get("spoilers_enabled", "")
 
                 finalData.append(tmp)
-                TOTAl_SUBREDDITS_PER_TOPICS -= 1
+                TOTAL_SUBREDDITS_PER_TOPICS -= 1
                 print(tmp)
                 print(f"Done {obj.get('display_name','NA')}")
             master[topic] = finalData
