@@ -9,6 +9,18 @@ from datetime import datetime
 import asyncpraw
 from aiolimiter import AsyncLimiter
 import asyncio
+import random
+import logging
+import requests
+from bs4 import BeautifulSoup
+
+# Logging
+handler = logging.StreamHandler()
+handler.setLevel(logging.DEBUG)
+for logger_name in ("asyncpraw", "asyncprawcore"):
+    logger = logging.getLogger(logger_name)
+    logger.setLevel(logging.DEBUG)
+    logger.addHandler(handler)
 
 
 # Load DOTENV
@@ -50,6 +62,128 @@ def getDate(timestamp):
     return dt.strftime("%d %B %Y")
 
 
+def generate_description():
+    descriptions = [
+        "A witty individual with a contagious laugh.",
+        "A thoughtful conversationalist who always listens intently.",
+        "A creative soul with a passion for innovation.",
+        "A natural leader who inspires those around them.",
+        "A curious mind who loves to learn new things.",
+        "A free spirit who embraces life with open arms.",
+        "A kind-hearted person who puts others first.",
+        "A fearless adventurer who seeks out new experiences.",
+        "A deep thinker who ponders the mysteries of the universe.",
+        "A charismatic personality who lights up any room.",
+        "A hardworking professional who strives for excellence.",
+        "A loyal friend who stands by their loved ones.",
+        "A talented artist who sees the world through a unique lens.",
+        "A patient listener who offers wise counsel.",
+        "A generous giver who goes above and beyond for others.",
+        "A humble servant who works tirelessly behind the scenes.",
+        "A resilient survivor who overcomes adversity with grace.",
+        "A playful jokester who brings laughter to every gathering.",
+        "A calm presence who radiates peace and serenity.",
+        "A brilliant strategist who thinks several steps ahead.",
+        "A compassionate caregiver who nurtures those in need.",
+        "A meticulous organizer who keeps everything running smoothly.",
+        "A visionary dreamer who imagines a better future.",
+        "A quick learner who adapts to new situations with ease.",
+        "A gracious host who makes everyone feel welcome.",
+        "A persistent problem-solver who never gives up.",
+        "A brave warrior who fights for justice and equality.",
+        "A gentle soul who cherishes every moment.",
+        "A passionate advocate who speaks up for what they believe in.",
+        "A lifelong student who is always eage",
+        "A creative force, brimming with ideas and inspiration. Loves to experiment with different mediums and styles, pushing boundaries and challenging expectations.",
+        "A dedicated problem-solver, with a knack for finding innovative solutions to complex challenges. Prefers to work collaboratively, valuing teamwork and open communication.",
+        "A compassionate listener, empathetic and understanding. Strives to create a safe and supportive space for others to share their thoughts and feelings.",
+    ]
+    return random.choice(descriptions)
+
+
+def generate_colors():
+    def generate_hex():
+        return "#{:06x}".format(random.randint(0, 0xFFFFFF))
+
+    primary_color = generate_hex()
+    while True:
+        key_color = generate_hex()
+        if key_color != primary_color:
+            break
+
+    return primary_color, key_color
+
+
+def getProfilePics():
+    url = "https://www.reddit.com/user/timawesomeness/comments/813jpq/default_reddit_profile_pictures/"
+    headers = {
+        "User-Agent": f"{getUserAgent()}",
+    }
+
+    response = requests.get(url=url, headers=headers)
+    html_content = response.content
+    soup = BeautifulSoup(html_content.decode("utf-8"), "html5lib")
+
+    master = []
+    tables = soup.find_all("table")
+    for table in tables:
+        for body in table.find_all("tbody"):
+            for tr in body.find_all("tr"):
+                image_links = tr.find_all("a")
+                if image_links:
+                    text = tr.get_text().lstrip().rstrip().split(" ")[0].strip("\n")
+                    tmp = []
+                    for link in image_links:
+                        tmp.append(link["href"])
+                    master.append({"hex": text, "data": tmp})
+    return master
+
+
+def generate_random_epoch():
+    start_date = datetime(2005, 1, 10)
+    end_date = datetime(2024, 2, 14)
+
+    # Calculate the difference in seconds between the start and end dates
+    diff_seconds = (end_date - start_date).total_seconds()
+
+    # Generate a random number of seconds within the range
+    random_seconds = random.uniform(0, diff_seconds)
+
+    # Add the random number of seconds to the start date to get the random epoch time
+    random_epoch = int((start_date + timedelta(seconds=random_seconds)).timestamp())
+
+    return random_epoch
+
+
+async def getRedditorInfoAlternate(redditor_name, aid, userInfo, profilePics):
+    val = generate_random_epoch()
+    age = epoch_age(val)
+    date = getDate(val)
+    primary, key = generate_colors()
+
+    randomize_profile_pic = random.sample(profilePics, 1)[0]
+    hexColor = f'#{randomize_profile_pic["hex"]}'
+    dat = randomize_profile_pic["data"]
+    avatar_img = random.sample(dat, 1)[0]
+
+    print(hexColor)
+    print(avatar_img)
+
+    userInfo[aid]["cakeDay"] = val
+    userInfo[aid]["cakeDayHuman"] = date
+    userInfo[aid]["age"] = age
+    userInfo[aid]["avatar_img"] = avatar_img
+    userInfo[aid]["banner_img"] = ""
+    userInfo[aid]["publicDescription"] = generate_description()
+    userInfo[aid]["over18"] = False
+    userInfo[aid]["keycolor"] = key
+    userInfo[aid]["primarycolor"] = primary
+    userInfo[aid]["iconcolor"] = hexColor
+    userInfo[aid]["supended"] = False
+    total_users[0] -= 1
+    print(f"More {total_users} left ...")
+
+
 async def getRedditorInfo(redditor_name, aid, userInfo, rate_limit):
     async with rate_limit:
         async with asyncpraw.Reddit(
@@ -58,6 +192,8 @@ async def getRedditorInfo(redditor_name, aid, userInfo, rate_limit):
             user_agent=getUserAgent(),
             username=config.get("username"),
             password=config.get("password"),
+            ratelimit_seconds=300,
+            timeout=60,
         ) as reddit:
             try:
                 redditor = await reddit.redditor(redditor_name, fetch=True)
@@ -142,20 +278,23 @@ TIME_USERS = int(config.get("TIME_USERS"))
 total_users = [len(userData)]
 
 
-async def main():
+async def main(profilePics):
     tasks = []
     rate_limit = AsyncLimiter(HIT_USERS, TIME_USERS)
     for user in userData:
         redditor_name = userData.get(user, {}).get("username", "")
         id = userData.get(user, {}).get("id", "")
         if redditor_name and id:
-            tasks.append(getRedditorInfo(redditor_name, id, userData, rate_limit))
+            # tasks.append(getRedditorInfo(redditor_name, id, userData, rate_limit))
+            tasks.append(
+                getRedditorInfoAlternate(redditor_name, id, userData, profilePics)
+            )
 
     await asyncio.gather(*tasks)
 
 
 if __name__ == "__main__":
-    asyncio.run(main())
+    profilePics = getProfilePics()
+    asyncio.run(main(profilePics))
     with open("./users.json", "w") as f:
-        json.dump(userData, f)
-    len(userData)
+        json.dump(userData, f, indent=4)

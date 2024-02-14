@@ -10,6 +10,15 @@ import aiohttp
 import random
 import string
 from aiolimiter import AsyncLimiter
+import logging
+
+# Logging
+handler = logging.StreamHandler()
+handler.setLevel(logging.DEBUG)
+for logger_name in ("asyncpraw", "asyncprawcore"):
+    logger = logging.getLogger(logger_name)
+    logger.setLevel(logging.DEBUG)
+    logger.addHandler(handler)
 
 
 # Load DOTENV
@@ -52,12 +61,12 @@ topics = [
     "AddictionSupport",
     "Animals and Pets",
     "Art",
-    "BeautyandMakeup",
-    "Business,Economics,andFinance",
+    "Beauty and Makeup",
+    "Business,Economics,and Finance",
     "Careers",
     "Cars and MotorVehicles",
     "Celebrity",
-    "CraftsandDIY",
+    "Crafts and DIY",
     "Crypto",
     "Culture,Race,and Ethnicity",
     "Ethics and Philosophy",
@@ -87,7 +96,7 @@ topics = [
     "Podcasts and Streamers",
     "Politics",
     "Programming",
-    "Reading,Writing,andLiterature",
+    "Reading,Writing,and Literature",
     "Religion and Spirituality",
     "Science",
     "SexualOrientation",
@@ -112,15 +121,21 @@ async def getRules(redditName, rate_limit):
             username=config.get("username"),
             password=config.get("password"),
             ratelimit_seconds=300,
+            timeout=60,
         ) as reddit:
-            data = await reddit.subreddit(redditName)
             allRules = []
-            async for rule in data.rules:
-                tmp = rule.__dict__
-                obj = {}
-                obj["rule_title"] = tmp.get("short_name", "")
-                obj["rule_desc"] = tmp.get("description", "")
-                allRules.append(obj)
+
+            try:
+                data = await reddit.subreddit(redditName)
+                async for rule in data.rules:
+                    tmp = rule.__dict__
+                    obj = {}
+                    obj["rule_title"] = tmp.get("short_name", "")
+                    obj["rule_desc"] = tmp.get("description", "")
+                    allRules.append(obj)
+            except Exception as e:
+                print(e)
+                print(f"No rules found for r/{redditName}")
 
     return allRules
 
@@ -181,6 +196,7 @@ async def getAnchors(subredditName, rate_limit):
             username=config.get("username"),
             password=config.get("password"),
             ratelimit_seconds=300,
+            timeout=60,
         ) as reddit:
             subreddit = await reddit.subreddit(subredditName)
             topbar = [widget async for widget in subreddit.widgets.topbar()]
@@ -240,6 +256,7 @@ async def getModeratorsNames(redditName, rate_limit):
             username=config.get("username"),
             password=config.get("password"),
             ratelimit_seconds=300,
+            timeout=60,
         ) as reddit:
             sredditMode = await reddit.subreddit(redditName)
             async for moderator in sredditMode.moderator:

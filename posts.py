@@ -12,6 +12,16 @@ from dotenv import dotenv_values
 import aiohttp
 import asyncio
 from aiolimiter import AsyncLimiter
+import logging
+
+# Logging
+handler = logging.StreamHandler()
+handler.setLevel(logging.DEBUG)
+for logger_name in ("asyncpraw", "asyncprawcore"):
+    logger = logging.getLogger(logger_name)
+    logger.setLevel(logging.DEBUG)
+    logger.addHandler(handler)
+
 
 # Load DOTENV
 config = dotenv_values(".env")
@@ -413,6 +423,7 @@ async def getPostData_subreddit(topic, currSubreddit, rate_limit):
             username=config.get("username"),
             password=config.get("password"),
             ratelimit_seconds=300,
+            timeout=60,
         ) as reddit:
             subreddit = await reddit.subreddit(subredditName)
 
@@ -425,7 +436,8 @@ async def getPostData_subreddit(topic, currSubreddit, rate_limit):
                     data = vars(submission)
                 except Exception as e:
                     with open("noposts.txt", "a+") as f:
-                        f.write(f"{str(e)}  {str(id)}")
+                        _url = f'https://reddit.com/r/{str(data.get("subreddit", "").display_name)}/{str(id)}/{str(submission.title)}'
+                        f.write(f"{str(e)}  {str(id)} {_url} \n")
 
                 postBody = data["selftext"]
                 postHTML = data["selftext_html"]
