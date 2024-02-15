@@ -121,7 +121,7 @@ async def getRules(redditName, rate_limit):
             username=config.get("username"),
             password=config.get("password"),
             ratelimit_seconds=300,
-            timeout=60,
+            timeout=32,
         ) as reddit:
             allRules = []
 
@@ -196,7 +196,7 @@ async def getAnchors(subredditName, rate_limit):
             username=config.get("username"),
             password=config.get("password"),
             ratelimit_seconds=300,
-            timeout=60,
+            timeout=32,
         ) as reddit:
             subreddit = await reddit.subreddit(subredditName)
             topbar = [widget async for widget in subreddit.widgets.topbar()]
@@ -256,7 +256,7 @@ async def getModeratorsNames(redditName, rate_limit):
             username=config.get("username"),
             password=config.get("password"),
             ratelimit_seconds=300,
-            timeout=60,
+            timeout=32,
         ) as reddit:
             sredditMode = await reddit.subreddit(redditName)
             async for moderator in sredditMode.moderator:

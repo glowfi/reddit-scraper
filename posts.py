@@ -423,7 +423,7 @@ async def getPostData_subreddit(topic, currSubreddit, rate_limit):
             username=config.get("username"),
             password=config.get("password"),
             ratelimit_seconds=300,
-            timeout=60,
+            timeout=32,
         ) as reddit:
             subreddit = await reddit.subreddit(subredditName)
 
