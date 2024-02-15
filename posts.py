@@ -207,8 +207,9 @@ def post_content(data, subm):
     else:
         # Multi [video+img] [media_metadata.id.e (check Image or RedditVideo)] [1anj4fi]
         hasMulti = data.get("media_metadata", "")
+        isGallery = data.get("is_gallery", False)
         st = set()
-        if hasMulti:
+        if hasMulti and not isGallery:
             for imageID in hasMulti:
                 mediaType = hasMulti.get(imageID, {}).get("e", "")
                 st.add(mediaType)
