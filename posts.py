@@ -13,6 +13,9 @@ import aiohttp
 import asyncio
 from aiolimiter import AsyncLimiter
 import logging
+import urllib.parse
+from urllib.parse import parse_qs
+
 
 # Logging
 handler = logging.StreamHandler()
@@ -201,6 +204,15 @@ async def getComments(url, topic, rate_limit):
             print("Error Occured: ", e)
 
 
+def handleURL(encodedURL: str):
+    if encodedURL.find("https://www.reddit.com/media") != -1:
+        data = parse_qs(encodedURL)
+        return [data[item] for item in data][0][0]
+
+    else:
+        return urllib.parse.unquote(encodedURL)
+
+
 def post_content(data, subm):
     if hasattr(subm, "poll_data"):
         return {"type": "Invalid", "data": []}
@@ -220,14 +232,24 @@ def post_content(data, subm):
                     if mediaType == "Image":
                         # gif
                         hasGif = (
-                            hasMulti.get(imageID, {}).get("variants", {}).get("gif", {})
+                            hasMulti.get(imageID, {})
+                            .get("variants", {})
+                            .get("gif", {})
+                            .get("resolutions", [])
                         )
                         if hasGif:
+                            for objs in hasGif:
+                                objs["url"] = handleURL(objs["url"])
                             return {"type": "gif", "id": imageID, "data": hasGif}
                         # image
                         else:
                             pass
                             dat = hasMulti.get(imageID, {}).get("p", [])
+                            for objs in dat:
+                                objs["u"] = handleURL(objs["u"])
+                            sourceImage = hasMulti.get(imageID, {}).get("s", {})
+                            if sourceImage:
+                                dat.append(sourceImage)
                             if dat:
                                 final_data.append(
                                     {"type": "image", "id": imageID, "data": dat}
@@ -241,8 +263,8 @@ def post_content(data, subm):
                                     "type": "video",
                                     "id": imageID,
                                     "data": {
-                                        "dash_url": dat.get("dashUrl", ""),
-                                        "hls_url": dat.get("hlsUrl", ""),
+                                        "dash_url": handleURL(dat.get("dashUrl", "")),
+                                        "hls_url": handleURL(dat.get("hlsUrl", "")),
                                     },
                                 }
                             )
@@ -260,6 +282,9 @@ def post_content(data, subm):
             )
 
             if hasGif:
+                for objs in hasGif:
+                    objs["url"] = handleURL(objs["url"])
+
                 return {"data": hasGif, "id": str(uuid.uuid4()), "type": "gif"}
 
         # Video [secure_media.reddit_video.dash_url.hls_url.fallback_url.scrubber_media_url] [1alyf9i]
@@ -269,10 +294,12 @@ def post_content(data, subm):
             # print(hasVideo, "hasVideo")
             if hasVideo:
                 vid_data = {
-                    "dash_url": hasVideo.get("dash_url", ""),
-                    "hls_url": hasVideo.get("hls_url", ""),
-                    "fallback_url": hasVideo.get("fallback_url", ""),
-                    "scrubber_media_url": hasVideo.get("scrubber_media_url", ""),
+                    "dash_url": handleURL(hasVideo.get("dash_url", "")),
+                    "hls_url": handleURL(hasVideo.get("hls_url", "")),
+                    "fallback_url": handleURL(hasVideo.get("fallback_url", "")),
+                    "scrubber_media_url": handleURL(
+                        hasVideo.get("scrubber_media_url", "")
+                    ),
                 }
                 return {"data": vid_data, "type": "video", "id": str(uuid.uuid4())}
 
@@ -280,6 +307,11 @@ def post_content(data, subm):
         if data.get("preview", {}):
             hasImage = data.get("preview", {}).get("images")[0].get("resolutions", [])
             if data:
+                sourceImage = data.get("preview", {}).get("images")[0].get("source", {})
+                for objs in hasImage:
+                    objs["url"] = handleURL(objs["url"])
+                if sourceImage:
+                    hasImage.append(sourceImage)
                 return {"data": hasImage, "id": str(uuid.uuid4()), "type": "image"}
 
         # Gallery [media_metadata.id.p] [1anhgwz]
@@ -289,6 +321,11 @@ def post_content(data, subm):
             for imageID in hasGallery:
                 imgs = hasGallery.get(imageID, {}).get("p", [])
                 if imgs:
+                    for objs in imgs:
+                        objs["u"] = handleURL(objs["u"])
+                    sourceImage = hasGallery.get(imageID, {}).get("s", {})
+                    if sourceImage:
+                        imgs.append(sourceImage)
                     imageGallery.append({"id": imageID, "pics": imgs})
 
             return {"data": imageGallery, "type": "gallery", "id": str(uuid.uuid4())}
