@@ -465,13 +465,24 @@ async def getPostData_subreddit(topic, currSubreddit, rate_limit):
         ) as reddit:
             subreddit = await reddit.subreddit(subredditName)
 
-            async for posts in subreddit.hot(limit=POSTS_PER_SUBREDDIT):
+            postCounter = [POSTS_PER_SUBREDDIT]
+
+            async for posts in subreddit.hot(limit=None):
+                if postCounter[0] == 0:
+                    break
+
                 obj = posts.__dict__
 
                 try:
                     submission = await reddit.submission(id=obj["id"])
                     print(submission.title)
                     data = vars(submission)
+                    author = data.get("author", "")
+                    if not author:
+                        continue
+                    else:
+                        postCounter[0] -= 1
+
                 except Exception as e:
                     with open("noposts.txt", "a+") as f:
                         _url = f'https://reddit.com/r/{str(data.get("subreddit", "").display_name)}/{str(id)}/{str(submission.title)}'
