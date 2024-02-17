@@ -239,20 +239,32 @@ def post_content(data, subm):
                         )
                         if hasGif:
                             for objs in hasGif:
-                                objs["url"] = handleURL(objs["url"])
-                            return {"type": "gif", "id": imageID, "data": hasGif}
+                                if objs.get("u", ""):
+                                    objs["u"] = handleURL(objs["u"])
+
+                            final_data.append(
+                                {
+                                    "type": "gif",
+                                    "id": imageID,
+                                    "data": sorted(hasGif, key=lambda x: x["y"]),
+                                }
+                            )
                         # image
                         else:
-                            pass
                             dat = hasMulti.get(imageID, {}).get("p", [])
                             for objs in dat:
-                                objs["u"] = handleURL(objs["u"])
+                                if objs.get("u", ""):
+                                    objs["u"] = handleURL(objs["u"])
                             sourceImage = hasMulti.get(imageID, {}).get("s", {})
                             if sourceImage:
                                 dat.append(sourceImage)
                             if dat:
                                 final_data.append(
-                                    {"type": "image", "id": imageID, "data": dat}
+                                    {
+                                        "type": "image",
+                                        "id": imageID,
+                                        "data": sorted(dat, key=lambda x: x["y"]),
+                                    }
                                 )
                     # videos
                     elif mediaType == "RedditVideo":
@@ -283,9 +295,14 @@ def post_content(data, subm):
 
             if hasGif:
                 for objs in hasGif:
-                    objs["url"] = handleURL(objs["url"])
+                    if objs.get("url", ""):
+                        objs["url"] = handleURL(objs["url"])
 
-                return {"data": hasGif, "id": str(uuid.uuid4()), "type": "gif"}
+                return {
+                    "data": sorted(hasGif, key=lambda x: x["height"]),
+                    "id": str(uuid.uuid4()),
+                    "type": "gif",
+                }
 
         # Video [secure_media.reddit_video.dash_url.hls_url.fallback_url.scrubber_media_url] [1alyf9i]
         val = data.get("secure_media", {})
@@ -309,10 +326,15 @@ def post_content(data, subm):
             if data:
                 sourceImage = data.get("preview", {}).get("images")[0].get("source", {})
                 for objs in hasImage:
-                    objs["url"] = handleURL(objs["url"])
+                    if objs.get("url", ""):
+                        objs["url"] = handleURL(objs["url"])
                 if sourceImage:
                     hasImage.append(sourceImage)
-                return {"data": hasImage, "id": str(uuid.uuid4()), "type": "image"}
+                return {
+                    "data": sorted(hasImage, key=lambda x: x["height"]),
+                    "id": str(uuid.uuid4()),
+                    "type": "image",
+                }
 
         # Gallery [media_metadata.id.p] [1anhgwz]
         hasGallery = data.get("media_metadata", "")
@@ -322,13 +344,24 @@ def post_content(data, subm):
                 imgs = hasGallery.get(imageID, {}).get("p", [])
                 if imgs:
                     for objs in imgs:
-                        objs["u"] = handleURL(objs["u"])
+                        if objs.get("u", ""):
+                            objs["u"] = handleURL(objs["u"])
                     sourceImage = hasGallery.get(imageID, {}).get("s", {})
                     if sourceImage:
                         imgs.append(sourceImage)
                     imageGallery.append({"id": imageID, "pics": imgs})
 
-            return {"data": imageGallery, "type": "gallery", "id": str(uuid.uuid4())}
+            if imageGallery:
+                for objs in imageGallery:
+                    getPics = objs.get("pics", [])
+                    if getPics:
+                        objs.get("pics", []).sort(key=lambda x: x["y"])
+
+            return {
+                "data": imageGallery,
+                "type": "gallery",
+                "id": str(uuid.uuid4()),
+            }
 
         return {"type": "text", "data": []}
 

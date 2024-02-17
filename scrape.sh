@@ -4,6 +4,7 @@ start=$(date +%s.%N)
 
 rm errs.txt
 touch errs.txt
+rm ./noposts.txt
 
 for ((i = 0; i < 100; i++)); do
 	./subreddits.py && break
