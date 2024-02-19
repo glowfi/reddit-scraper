@@ -75,12 +75,11 @@ def add(author, author_id, allUsers, subreddit, subredditID):
         seenUsers.add(author_id)
 
     else:
-        for user in allUsers:
-            subreddit_lists = allUsers.get(user).get("subreddits_member", [])
-            if subredditID and subreddit:
-                data = [subredditID, subreddit]
-                if data not in subreddit_lists:
-                    subreddit_lists.append(data)
+        subreddit_lists = allUsers.get(author_id).get("subreddits_member", [])
+        if subredditID and subreddit and subreddit_lists:
+            data = [subredditID, subreddit]
+            if data not in subreddit_lists:
+                subreddit_lists.append(data)
 
 
 # Get all user comment
@@ -498,114 +497,147 @@ async def getPostData_subreddit(topic, currSubreddit, rate_limit):
         ) as reddit:
             subreddit = await reddit.subreddit(subredditName)
 
-            postCounter = [POSTS_PER_SUBREDDIT]
-
+            postCounter = 0
             async for posts in subreddit.hot(limit=None):
-                if postCounter[0] == 0:
-                    break
-
                 obj = posts.__dict__
 
                 try:
                     submission = await reddit.submission(id=obj["id"])
                     print(submission.title)
                     data = vars(submission)
+
                     author = data.get("author", "")
                     if not author:
                         continue
-                    else:
-                        postCounter[0] -= 1
+
+                    postBody = data["selftext"]
+                    postHTML = data["selftext_html"]
+                    if postHTML:
+                        postHTML = postHTML.replace("&lt;", "<").replace("&gt;", ">")
+
+                    dat = post_content(data, submission)
+
+                    post_data = {}
+
+                    if dat == "Invalid":
+                        continue
+
+                    # Link type post
+                    if not postBody and not postHTML:
+                        author = data.get("author", "")
+                        if author:
+                            author = author.name
+
+                        post_data = {
+                            "id": data.get("id", ""),
+                            "subreddit": data.get("subreddit", "").display_name,
+                            "subreddit_id": data.get("subreddit_id", "").replace(
+                                "t5_", ""
+                            ),
+                            "author": author,
+                            "author_id": data.get("author_fullname", "").replace(
+                                "t2_", ""
+                            ),
+                            "title": data.get("title", ""),
+                            "postflair": data.get("link_flair_text", ""),
+                            "postflaircolor": data.get(
+                                "link_flair_background_color", ""
+                            ),
+                            "num_comments": data.get("num_comments", ""),
+                            "ups": data.get("ups", ""),
+                            "awards": random.choices(awards, k=random.randint(0, 4)),
+                            "comments": await getComments(
+                                f"https://reddit.com{obj.get('permalink','')}.json",
+                                topic,
+                                rate_limit,
+                            ),
+                            "media_metadata": dat,
+                            "createdat": data["created_utc"],
+                            "createdatHuman": unix_to_relative_time(
+                                data["created_utc"]
+                            ),
+                            "text": data["url"],
+                            "text_html": "",
+                            "over_18": data.get("over_18", ""),
+                            "spoiler": data.get("spoiler", ""),
+                            "link_type": True,
+                            "category": topic,
+                        }
+
+                    elif dat["type"] in (
+                        "video",
+                        "gif",
+                        "image",
+                        "multi",
+                        "gallery",
+                        "text",
+                    ):
+                        author = data.get("author", "")
+                        if author:
+                            author = author.name
+                        post_data = {
+                            "id": data.get("id", ""),
+                            "subreddit": data.get("subreddit", "").display_name,
+                            "subreddit_id": data.get("subreddit_id", "").replace(
+                                "t5_", ""
+                            ),
+                            "author": author,
+                            "author_id": data.get("author_fullname", "").replace(
+                                "t2_", ""
+                            ),
+                            "title": data.get("title", ""),
+                            "postflair": data.get("link_flair_text", ""),
+                            "postflaircolor": data.get(
+                                "link_flair_background_color", ""
+                            ),
+                            "num_comments": data.get("num_comments", ""),
+                            "ups": data.get("ups", ""),
+                            "awards": random.choices(awards, k=random.randint(0, 4)),
+                            "comments": await getComments(
+                                f"https://reddit.com{obj.get('permalink','')}.json",
+                                topic,
+                                rate_limit,
+                            ),
+                            "media_content": dat,
+                            "createdat": data["created_utc"],
+                            "createdatHuman": unix_to_relative_time(
+                                data["created_utc"]
+                            ),
+                            "text": postBody,
+                            "text_html": postHTML,
+                            "over_18": data.get("over_18", ""),
+                            "spoiler": data.get("spoiler", ""),
+                            "link_type": False,
+                            "category": topic,
+                        }
+
+                    if post_data:
+                        finalPostsData.append(dict(sorted(post_data.items())))
+
+                        postCounter += 1
+                        print(
+                            "\x1b[6;30;42m"
+                            + f"POST COUNTER .................... {topic} {postCounter}"
+                            + "\x1b[0m"
+                        )
+
+                        DONE[0] += 1
+                        print(
+                            "\x1b[6;30;42m"
+                            + f"TOTAL POSTS FETCHED ............  {DONE[0]}"
+                            + "\x1b[0m"
+                        )
+
+                        if (
+                            postCounter == POSTS_PER_SUBREDDIT
+                            or DONE[0] >= TOTAL_REQUIRED_POSTS
+                        ):
+                            break
 
                 except Exception as e:
                     with open("noposts.txt", "a+") as f:
-                        _url = f'https://reddit.com/r/{str(data.get("subreddit", "").display_name)}/{str(id)}/{str(submission.title)}'
+                        _url = f'https://reddit.com/r/{str(data.get("subreddit", "").display_name)}/{str(data.get("id", ""))}/{str(submission.title)}'
                         f.write(f"{str(e)}  {str(id)} {_url} \n")
-
-                postBody = data["selftext"]
-                postHTML = data["selftext_html"]
-                if postHTML:
-                    postHTML = postHTML.replace("&lt;", "<").replace("&gt;", ">")
-
-                dat = post_content(data, submission)
-
-                post_data = {}
-
-                if dat == "Invalid":
-                    continue
-
-                # Link type post
-                if not postBody and not postHTML:
-                    author = data.get("author", "")
-                    if author:
-                        author = author.name
-
-                    post_data = {
-                        "id": data.get("id", ""),
-                        "subreddit": data.get("subreddit", "").display_name,
-                        "subreddit_id": data.get("subreddit_id", "").replace("t5_", ""),
-                        "author": author,
-                        "author_id": data.get("author_fullname", "").replace("t2_", ""),
-                        "title": data.get("title", ""),
-                        "postflair": data.get("link_flair_text", ""),
-                        "postflaircolor": data.get("link_flair_background_color", ""),
-                        "num_comments": data.get("num_comments", ""),
-                        "ups": data.get("ups", ""),
-                        "awards": random.choices(awards, k=random.randint(0, 4)),
-                        "comments": await getComments(
-                            f"https://reddit.com{obj.get('permalink','')}.json",
-                            topic,
-                            rate_limit,
-                        ),
-                        "media_metadata": dat,
-                        "createdat": data["created_utc"],
-                        "createdatHuman": unix_to_relative_time(data["created_utc"]),
-                        "text": data["url"],
-                        "text_html": "",
-                        "over_18": data.get("over_18", ""),
-                        "spoiler": data.get("spoiler", ""),
-                        "link_type": True,
-                    }
-
-                elif dat["type"] in (
-                    "video",
-                    "gif",
-                    "image",
-                    "multi",
-                    "gallery",
-                    "text",
-                ):
-                    author = data.get("author", "")
-                    if author:
-                        author = author.name
-                    post_data = {
-                        "id": data.get("id", ""),
-                        "subreddit": data.get("subreddit", "").display_name,
-                        "subreddit_id": data.get("subreddit_id", "").replace("t5_", ""),
-                        "author": author,
-                        "author_id": data.get("author_fullname", "").replace("t2_", ""),
-                        "title": data.get("title", ""),
-                        "postflair": data.get("link_flair_text", ""),
-                        "postflaircolor": data.get("link_flair_background_color", ""),
-                        "num_comments": data.get("num_comments", ""),
-                        "ups": data.get("ups", ""),
-                        "awards": random.choices(awards, k=random.randint(0, 4)),
-                        "comments": await getComments(
-                            f"https://reddit.com{obj.get('permalink','')}.json",
-                            topic,
-                            rate_limit,
-                        ),
-                        "media_content": dat,
-                        "createdat": data["created_utc"],
-                        "createdatHuman": unix_to_relative_time(data["created_utc"]),
-                        "text": postBody,
-                        "text_html": postHTML,
-                        "over_18": data.get("over_18", ""),
-                        "spoiler": data.get("spoiler", ""),
-                        "link_type": False,
-                    }
-
-                if post_data:
-                    finalPostsData.append(dict(sorted(post_data.items())))
 
 
 async def completeTrophies(a, t):
@@ -639,6 +671,11 @@ if __name__ == "__main__":
     seenUsers = set()
     awards, trophies = [], []
     POSTS_PER_SUBREDDIT = int(config.get("POSTS_PER_SUBREDDIT"))
+    TOTAL_SUBREDDITS_PER_TOPICS = int(config.get("TOTAL_SUBREDDITS_PER_TOPICS"))
+    topicsize = int(config.get("TOPIC_SIZE"))
+    TOTAL_REQUIRED_POSTS = TOTAL_SUBREDDITS_PER_TOPICS * topicsize * POSTS_PER_SUBREDDIT
+
+    DONE = [0]
 
     subredditJSON = []
     with open("./subreddits.json", "r") as f:

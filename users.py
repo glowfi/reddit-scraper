@@ -181,7 +181,7 @@ async def getRedditorInfoAlternate(redditor_name, aid, userInfo, profilePics):
     userInfo[aid]["iconcolor"] = hexColor
     userInfo[aid]["supended"] = False
     total_users[0] -= 1
-    print(f"More {total_users} left ...")
+    print("\x1b[6;30;42m" + f"More {total_users} left ..." + "\x1b[0m")
 
 
 async def getRedditorInfo(redditor_name, aid, userInfo, rate_limit):
@@ -259,7 +259,9 @@ async def getRedditorInfo(redditor_name, aid, userInfo, rate_limit):
                         userInfo[aid]["supended"] = False
 
                         total_users[0] -= 1
-                        print(f"More {total_users} left ...")
+                        print(
+                            "\x1b[6;30;42m" + f"More {total_users} left ..." + "\x1b[0m"
+                        )
 
                     except Exception as e:
                         with open("user_errors.txt", "a") as fp:

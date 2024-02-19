@@ -303,7 +303,7 @@ async def getSubredditsByTopics(topic, rate_limit):
                         tmp["about"] = obj.get("public_description", "")
                         tmp["logoUrl"] = obj.get("community_icon", "")
                         tmp["bannerUrl"] = obj.get("banner_background_image", "")
-                        tmp["category"] = obj.get("category", "")
+                        tmp["category"] = topic
 
                         # Rules,Flairs,Anchors
                         tmp["rules"] = await getRules(
@@ -350,10 +350,19 @@ async def getSubredditsByTopics(topic, rate_limit):
                         TOTAL_SUBREDDITS_PER_TOPICS -= 1
                         print(tmp)
                         print(f"Done {obj.get('display_name','NA')}")
+                        SUBREDDITS_DONE[0] += 1
+
+                        print(
+                            "\x1b[6;30;42m"
+                            + f"TOTAL SUBREDDITS DONE :{SUBREDDITS_DONE} ........"
+                            + "\x1b[0m"
+                        )
                         break
                     postCount -= 1
 
             master[topic] = finalData
+            DONE[0] -= 1
+            print("\x1b[6;30;42m" + f"TOTAL TOPICS left {DONE[0]} ......" + "\x1b[0m")
 
     return "Done!"
 
@@ -370,6 +379,8 @@ async def main():
 
 
 if __name__ == "__main__":
+    DONE = [len(topics)]
+    SUBREDDITS_DONE = [0]
     asyncio.run(main())
     master = dict(sorted(master.items()))
     with open("subreddits.json", "w") as fp:

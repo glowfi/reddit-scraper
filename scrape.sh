@@ -1,6 +1,7 @@
 #!/bin/bash
 
-start=$(date +%s.%N)
+# Start time
+start=$(date +%s)
 
 rm errs.txt
 touch errs.txt
@@ -31,8 +32,24 @@ for ((i = 0; i < 100; i++)); do
 	sleep 10
 done
 
-end=$(date +%s.%N)
+### Split Files into chunks for easy importing
+./split.py
 
-runtime=$(echo "$end - $start" | bc -l)
+# End time
+end=$(date +%s)
 
-echo " Total Time Taken : ${runtime}"
+# Calculate the duration in seconds
+duration=$((end - start))
+
+# Convert seconds to days, hours, minutes, and seconds
+days=$((duration / 86400))
+hours=$(((duration % 86400) / 3600))
+minutes=$(((duration % 3600) / 60))
+seconds=$((duration % 60))
+
+# Display the duration
+echo "####### TIME TAKEN #######"
+echo ""
+echo "Execution time: $days days, $hours hours, $minutes minutes, $seconds seconds"
+echo ""
+echo "####### TIME TAKEN #######"
