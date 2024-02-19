@@ -34,6 +34,8 @@ done
 
 ### Split Files into chunks for easy importing
 ./split.py
+mkdir json
+mv *.json json/
 
 # End time
 end=$(date +%s)
