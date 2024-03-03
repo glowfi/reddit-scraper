@@ -31,8 +31,8 @@ Scrapes for following data and outputs json data:
 
 ```sh
 pip install virtualenv
-git clone https://github.com/glowfi/reddit_data_scrapper
-cd reddit_data_scrapper
+git clone https://github.com/glowfi/reddit-scraper
+cd reddit-scraper
 python -m venv env
 source ./env/bin/<Choose activation script Based on your OS>
 pip install -r ./requirements
