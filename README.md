@@ -7,6 +7,7 @@
 ## Dependencies
 
 -   Python 3.7+
+-   Python dependencies listed in requirements files.
 
 ## Data scraped
 
@@ -15,6 +16,14 @@ Scrapes for following data and outputs json data:
 -   **subreddits**
 -   **posts**
 -   **users**
+
+## Scripts Usage
+
+-   **subreddits.py (Scrapes Subreddits)**
+-   **posts.py (Scrapes Posts)**
+-   **users.py (Scrapes Users)**
+-   **split.py (To make it easier to import JSON data into databases like MongoDB, this will split the data into smaller chunks of json files prefixed by users_p1,users_p2,... so on)**
+-   **scrape.sh (Runs all the above script one by one)**
 
 ## Running the Script
 
