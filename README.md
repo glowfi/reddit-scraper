@@ -1,18 +1,20 @@
-## DataScrapper for VoxPopuli
+## Reddit Data Scrapper
 
 > Scrapes data from reddit
 
-<p align="center">
-    <img src="./logo.webp" />
-</p>
+<img src="./logo.webp" style="display:inline;padding:3px;box-shadow: rgba(0, 0, 0, 0.4) 0px 30px 90px;"/>
+
+## Dependencies
+
+-   Python 3.7+
 
 ## Data scraped
 
-Scrapes for following data :
+Scrapes for following data and outputs json data:
 
--   subreddits
--   posts
--   users
+-   **subreddits**
+-   **posts**
+-   **users**
 
 ## Running the Script
 
@@ -20,8 +22,8 @@ Scrapes for following data :
 
 ```sh
 pip install virtualenv
-git clone https://github.com/glowfi/vox_populi_data_scrapper
-cd vox_populi_data_scrapper
+git clone https://github.com/glowfi/reddit_data_scrapper
+cd reddit_data_scrapper
 python -m venv env
 source ./env/bin/<Choose activation script Based on your OS>
 pip install -r ./requirements
