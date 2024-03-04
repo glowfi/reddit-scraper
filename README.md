@@ -11,11 +11,23 @@
 
 ## Data scraped
 
-Scrapes for following data and outputs json data:
+Scrapes for following data and **outputs json data**:
 
 -   **subreddits**
 -   **posts**
 -   **users**
+
+> Subreddits data
+
+![Subreddits](./subreddits.png)
+
+> Posts data
+
+![Posts](./posts.png)
+
+> Users data
+
+![Users](./users.png)
 
 ## Scripts Usage
 
