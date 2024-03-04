@@ -1,5 +1,3 @@
-#!/bin/python3
-
 import json
 from dotenv import dotenv_values
 import uuid

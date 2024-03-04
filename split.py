@@ -1,5 +1,3 @@
-#!/bin/python3
-
 import json
 
 # Subreddits split array

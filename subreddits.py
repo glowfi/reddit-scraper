@@ -1,5 +1,3 @@
-#!/bin/python3
-
 import json
 import asyncpraw
 import asyncio

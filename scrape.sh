@@ -8,7 +8,7 @@ touch errs.txt
 rm ./noposts.txt
 
 for ((i = 0; i < 100; i++)); do
-	./subreddits.py && break
+	python subreddits.py && break
 	echo "Retrying.."
 	notify-send "Retrying subreddits..."
 	echo "Retrying subreddits ${i+1} ..." >>errs.txt
@@ -16,7 +16,7 @@ for ((i = 0; i < 100; i++)); do
 done
 
 for ((i = 0; i < 100; i++)); do
-	./posts.py && break
+	python posts.py && break
 	echo "Retrying.."
 	notify-send "Retrying posts..."
 	echo "Retrying posts ${i+1} ..." >>errs.txt
@@ -25,7 +25,7 @@ for ((i = 0; i < 100; i++)); do
 done
 
 for ((i = 0; i < 100; i++)); do
-	./users.py && break
+	python users.py && break
 	echo "Retrying.."
 	notify-send "Retrying users..."
 	echo "Retrying users ${i+1} ..." >>errs.txt
@@ -33,7 +33,7 @@ for ((i = 0; i < 100; i++)); do
 done
 
 ### Split Files into chunks for easy importing
-./split.py
+python split.py
 mkdir json
 mv *.json json/
 

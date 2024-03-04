@@ -1,5 +1,3 @@
-#!/bin/python3
-
 import asyncpraw
 import json
 import uuid
@@ -65,9 +63,9 @@ def add(author, author_id, allUsers, subreddit, subredditID):
             "id": author_id,
             "username": author,
             "password": "pass",
-            "subreddits_member": [[subredditID, subreddit]]
-            if subreddit and subredditID
-            else [],
+            "subreddits_member": (
+                [[subredditID, subreddit]] if subreddit and subredditID else []
+            ),
             "trophies": random.choices(trophies, k=random.randint(1, 5)),
         }
 
