@@ -37,6 +37,14 @@ python split.py
 mkdir json
 mv *.json json/
 
+### Import data into mongodb
+mongosh --eval "use reddit" --eval "db.dropDatabase()"
+mongosh --eval "use reddit"
+mongoimport -d reddit -c subreddits --file ./subreddits_p1.json --jsonArray
+mongoimport -d reddit -c posts --file ./posts_p1.json --jsonArray
+mongoimport -d reddit -c users --file ./user_p1.json --jsonArray
+mongoimport -d reddit -c users --file ./user_p2.json --jsonArray
+
 # End time
 end=$(date +%s)
 
