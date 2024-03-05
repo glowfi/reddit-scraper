@@ -1,8 +1,10 @@
-## Reddit Data Scrapper
+<p align="center">
+<b>Reddit Scrapper</b>
+</p>
 
-> Scrapes data from reddit
-
-<img src="./logo.webp" style="display:inline;padding:3px;box-shadow: rgba(0, 0, 0, 0.4) 0px 30px 90px;"/>
+<p align="center">
+<img src="./logo.png"/>
+</p>
 
 ## Dependencies
 
@@ -13,9 +15,10 @@
 
 Scrapes for following data and **outputs json data**:
 
--   **subreddits**
--   **posts**
--   **users**
+Output will be stored in **directory named json**, it will be automatically
+created after scraping is completed.
+
+## Example Data
 
 > Subreddits data
 
