@@ -13,6 +13,11 @@ from aiolimiter import AsyncLimiter
 import logging
 import urllib.parse
 from urllib.parse import parse_qs
+from urllib.parse import urlparse, urlunparse
+import copy
+import random
+import string
+import requests
 
 
 # Logging
@@ -30,7 +35,11 @@ config = dotenv_values(".env")
 
 # Custom User agent string
 def getUserAgent():
-    return f"User agent by {str(uuid.uuid4())}"
+    letters = string.ascii_lowercase
+    length = 10
+    return f"User agent by {str(uuid.uuid4())}-" + "".join(
+        random.choice(letters) for _ in range(length)
+    )
 
 
 # Credentials
@@ -54,6 +63,21 @@ headers = {
     "Upgrade-Insecure-Requests": "1",
     "User-Agent": f"{getUserAgent()}",
 }
+
+
+def sanitize_url(url):
+    parsed_url = urlparse(url)
+    new_url = urlunparse(
+        (
+            parsed_url.scheme,
+            parsed_url.netloc,
+            parsed_url.path.rstrip("/"),
+            parsed_url.params,
+            parsed_url.query,
+            parsed_url.fragment,
+        )
+    )
+    return str(new_url)
 
 
 # Add user
@@ -80,52 +104,104 @@ def add(author, author_id, allUsers, subreddit, subredditID):
                 subreddit_lists.append(data)
 
 
+# Get comments for this post
+async def send_request_comments(url, rate_limit):
+    async with rate_limit:
+        async with aiohttp.ClientSession() as session:
+            my_headers = copy.deepcopy(headers)
+            my_headers["User-Agent"] = f"{getUserAgent()}"
+            async with session.get(
+                url=url,
+                headers=my_headers,
+            ) as response:
+                return await response.text()
+
+
+# Log comments to a file
+def log_error(msg, filename):
+    with open(filename, "a") as fp:
+        fp.write(msg + "\n")
+
+
 # Get all user comment
 async def getComments(url, topic, rate_limit):
+    RESP_FROM_REQ = None
     async with rate_limit:
         print("url:", url)
         res_data = []
         try:
-            async with aiohttp.ClientSession() as session:
-                async with session.get(
-                    url=url,
-                    headers=headers,
-                ) as response:
-                    resData = await response.json()
-                    res_data = resData[1].get("data", {}).get("children", [])
-                    currPostAuthor = (
-                        resData[0]
-                        .get("data", {})
-                        .get("children", [0])[0]
-                        .get("data", [])
-                        .get("author", "")
-                    )
-                    currPostAuthorID = (
-                        resData[0]
-                        .get("data", {})
-                        .get("children", [0])[0]
-                        .get("data", [])
-                        .get("author_fullname", "")
-                        .replace("t2_", "")
-                    )
-                    print("ALERT .....", currPostAuthor, currPostAuthorID)
-                    if currPostAuthor and currPostAuthorID:
-                        add(
-                            currPostAuthor,
-                            currPostAuthorID,
-                            allUsers,
-                            resData[0]
-                            .get("data", {})
-                            .get("children", [0])[0]
-                            .get("data", [])
-                            .get("subreddit", ""),
-                            resData[0]
-                            .get("data", {})
-                            .get("children", [0])[0]
-                            .get("data", [])
-                            .get("subreddit_id", "")
-                            .replace("t5_", ""),
+            resData = await send_request_comments(url, rate_limit)
+            RESP_FROM_REQ = resData
+
+            MAX_RETRIES = 30
+            NO_TRIES = MAX_RETRIES
+
+            while NO_TRIES:
+                if "kind" in resData:
+                    resData = json.loads(resData)
+                    if (
+                        isinstance(resData, list)
+                        and len(resData) > 0
+                        and "kind" in resData[0]
+                    ):
+                        print(
+                            "\x1b[6;30;42m"
+                            + f"Got Back data in {abs(MAX_RETRIES-NO_TRIES)+1} tries !"
+                            + "\x1b[0m"
                         )
+                        log_error(f"Got {url}", "comments-got.txt")
+                        break
+                else:
+                    print(
+                        "\033[41m"
+                        + f"Retrying {abs(MAX_RETRIES-NO_TRIES)+1} ...."
+                        + "\033[0m"
+                    )
+                    log_error(f"Retrying {url}", "comments-retry.txt")
+
+                    resData = requests.get(url).text
+                    # resData = await send_request_comments(url, rate_limit)
+                    RESP_FROM_REQ = resData
+
+                NO_TRIES -= 1
+
+            if NO_TRIES == 0:
+                return []
+
+            res_data = resData[1].get("data", {}).get("children", [])
+            currPostAuthor = (
+                resData[0]
+                .get("data", {})
+                .get("children", [0])[0]
+                .get("data", [])
+                .get("author", "")
+            )
+            currPostAuthorID = (
+                resData[0]
+                .get("data", {})
+                .get("children", [0])[0]
+                .get("data", [])
+                .get("author_fullname", "")
+                .replace("t2_", "")
+            )
+            print("ALERT .....", currPostAuthor, currPostAuthorID)
+            if currPostAuthor and currPostAuthorID:
+                add(
+                    currPostAuthor,
+                    currPostAuthorID,
+                    allUsers,
+                    resData[0]
+                    .get("data", {})
+                    .get("children", [0])[0]
+                    .get("data", [])
+                    .get("subreddit", ""),
+                    resData[0]
+                    .get("data", {})
+                    .get("children", [0])[0]
+                    .get("data", [])
+                    .get("subreddit_id", "")
+                    .replace("t5_", ""),
+                )
 
             async def helper(_res_data, parent_id):
                 finalData = []
@@ -198,7 +274,8 @@ async def getComments(url, topic, rate_limit):
 
         except Exception as e:
             print("HERE: ...", len(res_data), url)
-            print("Error Occured: ", e)
+            print(RESP_FROM_REQ)
+            print("\033[41m" + f"Error Occured:  {e} " + "\033[0m")
 
 
 def handleURL(encodedURL: str):
@@ -545,7 +622,10 @@ async def getPostData_subreddit(topic, currSubreddit, rate_limit):
                             "ups": data.get("ups", ""),
                             "awards": random.choices(awards, k=random.randint(0, 4)),
                             "comments": await getComments(
-                                f"https://reddit.com{obj.get('permalink','')}.json",
+                                sanitize_url(
+                                    f"https://reddit.com{obj.get('permalink','')}"
+                                )
+                                + ".json",
                                 topic,
                                 rate_limit,
                             ),
@@ -592,7 +672,10 @@ async def getPostData_subreddit(topic, currSubreddit, rate_limit):
                             "ups": data.get("ups", ""),
                             "awards": random.choices(awards, k=random.randint(0, 4)),
                             "comments": await getComments(
-                                f"https://reddit.com{obj.get('permalink','')}.json",
+                                sanitize_url(
+                                    f"https://reddit.com{obj.get('permalink','')}"
+                                )
+                                + ".json",
                                 topic,
                                 rate_limit,
                             ),
@@ -694,3 +777,17 @@ if __name__ == "__main__":
     # Create Users
     with open("users.json", "w") as f:
         json.dump(allUsers, f, indent=4)
+
+    # Log allcomments done
+    with open("comments-got.txt", "r") as fp:
+        data1 = fp.readlines()
+
+    with open("comments-retry.txt", "r") as fp:
+        data2 = fp.readlines()
+
+    data1 = set([i.split(" ")[-1].strip("\n") for i in data1])
+    data2 = set([i.split(" ")[-1].strip("\n") for i in data2])
+
+    with open("comments-confirm.txt", "w") as fp:
+        status = data1 == data2
+        fp.write(f"{status}")
