@@ -20,17 +20,17 @@ created after scraping is completed.
 
 ## Example Data
 
-> Subreddits data
+> A single Subreddit document look like this
 
-![Subreddits](./subreddits.png)
+![One Subreddits document example](./subreddits.png)
 
-> Posts data
+> A single Post document look like this
 
-![Posts](./posts.png)
+![One Posts document example](./posts.png)
 
-> Users data
+> A single User document look like this
 
-![Users](./users.png)
+![One Users document example](./users.png)
 
 ## Scripts Usage
 
