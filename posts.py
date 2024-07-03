@@ -29,6 +29,12 @@ for logger_name in ("asyncpraw", "asyncprawcore"):
     logger.addHandler(handler)
 
 
+# Log comments to a file
+def log_error(msg, filename):
+    with open(filename, "a") as fp:
+        fp.write(msg + "\n")
+
+
 # Load DOTENV
 config = dotenv_values(".env")
 
@@ -80,6 +86,9 @@ def sanitize_url(url):
     return str(new_url)
 
 
+####### Comment Extraction logic #######
+
+
 # Add user
 def add(author, author_id, allUsers, subreddit, subredditID):
     if author_id and author_id not in seenUsers:
@@ -117,167 +126,283 @@ async def send_request_comments(url, rate_limit):
                 return await response.text()
 
 
-# Log comments to a file
-def log_error(msg, filename):
-    with open(filename, "a") as fp:
-        fp.write(msg + "\n")
+# Sync request for getting comment details
+def sync_send_request_comments(url):
+    my_headers = copy.deepcopy(headers)
+    my_headers["User-Agent"] = f"{getUserAgent()}"
+    resData = requests.get(url, headers=my_headers).text
+    return resData
+
+
+# Extract deep nested comments
+async def extractDeepnestedComments(_res_data, parent_id, topic):
+    finalData = []
+    for comm in _res_data:
+        # Comment txt : data->(author,author_fullname(t2),created_utc,body,id,ups)
+        # Replies : replies->data->children[]
+
+        tmp = {}
+        notGotValues = 0
+
+        tmp["subreddit_id"] = (
+            comm.get("data", {}).get("subreddit_id", "").replace("t5_", "")
+        )
+        tmp["subreddit_name"] = comm.get("data", {}).get("subreddit", "")
+        tmp["author"] = comm.get("data", {}).get("author", "")
+        tmp["author_id"] = (
+            comm.get("data", {}).get("author_fullname", "").replace("t2_", "")
+        )
+        tmp["created_utc"] = comm.get("data", {}).get("created_utc", "")
+        tmp["parent_comment_id"] = parent_id
+        tmp["comment_id"] = comm.get("data", {}).get("id", "")
+        tmp["comment"] = comm.get("data", {}).get("body", "")
+        tmp["comment_html"] = comm.get("data", {}).get("body_html", "")
+        if tmp["comment_html"]:
+            tmp["comment_html"] = (
+                tmp["comment_html"].replace("&lt;", "<").replace("&gt;", ">")
+            )
+
+        tmp["comment_ups"] = comm.get("data", {}).get("ups", "")
+        tmp["category"] = topic
+
+        for i in tmp:
+            if tmp[i] == "":
+                notGotValues += 1
+
+        if notGotValues >= 4:
+            continue
+
+        author, authorID = tmp["author"], tmp["author_id"]
+
+        if author and authorID:
+            add(
+                author,
+                authorID,
+                allUsers,
+                tmp["subreddit_name"],
+                tmp["subreddit_id"],
+            )
+        try:
+            tmp["replies"] = await extractDeepnestedComments(
+                comm.get("data", {})
+                .get("replies", {})
+                .get("data", {})
+                .get("children", []),
+                comm.get("data", {}).get("id", ""),
+                topic,
+            )
+        except Exception as e:
+            tmp["replies"] = []
+
+        finalData.append(dict(sorted(tmp.copy().items())))
+
+    return finalData
+
+
+async def alternateextractDeepnestedComments(_res_data, parent_id, topic):
+    finalData = []
+    for comm in _res_data:
+        # Comment txt : data->(author,author_fullname(t2),created_utc,body,id,ups)
+        # Replies : replies->data->children[]
+
+        tmp = {}
+        notGotValues = 0
+        comm = comm.__dict__
+
+        tmp["subreddit_id"] = comm.get("subreddit_id", "").replace("t5_", "")
+        tmp["subreddit_name"] = comm.get("subreddit", "").display_name
+        tmp["author"] = comm.get("author", "").name if comm.get("author", "") else ""
+        tmp["author_id"] = comm.get("author_fullname", "").replace("t2_", "")
+        tmp["created_utc"] = comm.get("created_utc", "")
+        tmp["parent_comment_id"] = parent_id
+        tmp["comment_id"] = comm.get("id", "")
+        tmp["comment"] = comm.get("body", "")
+        tmp["comment_html"] = comm.get("body_html", "")
+        if tmp["comment_html"]:
+            tmp["comment_html"] = (
+                tmp["comment_html"].replace("&lt;", "<").replace("&gt;", ">")
+            )
+
+        tmp["comment_ups"] = comm.get("ups", "")
+        tmp["category"] = topic
+
+        for i in tmp:
+            if tmp[i] == "":
+                notGotValues += 1
+
+        if notGotValues >= 4:
+            continue
+
+        author, authorID = tmp["author"], tmp["author_id"]
+
+        if author and authorID:
+            add(
+                author,
+                authorID,
+                allUsers,
+                tmp["subreddit_name"],
+                tmp["subreddit_id"],
+            )
+        try:
+            tmp["replies"] = await alternateextractDeepnestedComments(
+                comm.get("_replies", {}),
+                comm.get("id", ""),
+                topic,
+            )
+        except Exception as e:
+            tmp["replies"] = []
+
+        finalData.append(dict(sorted(tmp.copy().items())))
+
+    return finalData
+
+
+# Keep retrying until we get the comments details
+def keep_retrying(resData, url):
+    MAX_RETRIES = 30
+    NO_TRIES = MAX_RETRIES
+
+    while NO_TRIES:
+        if "kind" in resData:
+            resData = json.loads(resData)
+            if isinstance(resData, list) and len(resData) > 0 and "kind" in resData[0]:
+                print(
+                    "\x1b[6;30;42m"
+                    + f"Got Back data in {abs(MAX_RETRIES-NO_TRIES)+1} tries !"
+                    + "\x1b[0m"
+                )
+                log_error(f"Got {url}", "comments-got.txt")
+                break
+        else:
+            print(
+                "\033[41m" + f"Retrying {abs(MAX_RETRIES-NO_TRIES)+1} ...." + "\033[0m"
+            )
+            log_error(f"Retrying {url}", "comments-retry.txt")
+
+            time.sleep(5)
+            resData = sync_send_request_comments(url)
+
+        NO_TRIES -= 1
+
+    return NO_TRIES, resData
+
+
+# Get current post_author_name and id
+def get_author_details(resData):
+    res_data = resData[1].get("data", {}).get("children", [])
+    currPostAuthor = (
+        resData[0]
+        .get("data", {})
+        .get("children", [0])[0]
+        .get("data", [])
+        .get("author", "")
+    )
+    currPostAuthorID = (
+        resData[0]
+        .get("data", {})
+        .get("children", [0])[0]
+        .get("data", [])
+        .get("author_fullname", "")
+        .replace("t2_", "")
+    )
+    print("ALERT .....", currPostAuthor, currPostAuthorID)
+    if currPostAuthor and currPostAuthorID:
+        add(
+            currPostAuthor,
+            currPostAuthorID,
+            allUsers,
+            resData[0]
+            .get("data", {})
+            .get("children", [0])[0]
+            .get("data", [])
+            .get("subreddit", ""),
+            resData[0]
+            .get("data", {})
+            .get("children", [0])[0]
+            .get("data", [])
+            .get("subreddit_id", "")
+            .replace("t5_", ""),
+        )
+
+    return res_data
+
+
+async def handle_comment_extraction(resData, url, topic):
+    # Check if we can get the comment in only just 1 hit
+    ans = keep_retrying(resData, url)
+    NO_TRIES = ans[0]
+    resData = ans[1]
+
+    # If out of tries return blank comments list
+    if NO_TRIES == 0:
+        log_error(f"Url: {url} Error : Bad Error Using alternate", "comments-errs.txt")
+        async with asyncpraw.Reddit(
+            client_id=client_id,
+            client_secret=client_secret,
+            user_agent=getUserAgent(),
+            username=config.get("username"),
+            password=config.get("password"),
+            ratelimit_seconds=300,
+        ) as reddit:
+            submission = await reddit.submission("hhn98g")
+            comments = await submission.comments()
+            await comments.replace_more(limit=None)
+            comment_queue = comments[:]
+            log_error(f"Got {url}", "comments-got.txt")
+            return await alternateextractDeepnestedComments(
+                comment_queue, "isParent", topic
+            )
+
+    # Extract deeplynested comments
+    else:
+        res_data = get_author_details(resData)
+        allComments = await extractDeepnestedComments(res_data, "isParent", topic)
+        return allComments
 
 
 # Get all user comment
 async def getComments(url, topic, rate_limit):
-    RESP_FROM_REQ = None
     async with rate_limit:
         print("url:", url)
         res_data = []
         try:
+
+            # Try getting a the comment in one hit
             resData = await send_request_comments(url, rate_limit)
-            RESP_FROM_REQ = resData
 
-            MAX_RETRIES = 30
-            NO_TRIES = MAX_RETRIES
-
-            while NO_TRIES:
-                if "kind" in resData:
-                    resData = json.loads(resData)
-                    if (
-                        isinstance(resData, list)
-                        and len(resData) > 0
-                        and "kind" in resData[0]
-                    ):
-                        print(
-                            "\x1b[6;30;42m"
-                            + f"Got Back data in {abs(MAX_RETRIES-NO_TRIES)+1} tries !"
-                            + "\x1b[0m"
-                        )
-                        log_error(f"Got {url}", "comments-got.txt")
-                        break
-                else:
-                    print(
-                        "\033[41m"
-                        + f"Retrying {abs(MAX_RETRIES-NO_TRIES)+1} ...."
-                        + "\033[0m"
-                    )
-                    log_error(f"Retrying {url}", "comments-retry.txt")
-
-                    resData = requests.get(url).text
-                    # resData = await send_request_comments(url, rate_limit)
-                    RESP_FROM_REQ = resData
-
-                NO_TRIES -= 1
-
-            if NO_TRIES == 0:
-                return []
-
-            res_data = resData[1].get("data", {}).get("children", [])
-            currPostAuthor = (
-                resData[0]
-                .get("data", {})
-                .get("children", [0])[0]
-                .get("data", [])
-                .get("author", "")
-            )
-            currPostAuthorID = (
-                resData[0]
-                .get("data", {})
-                .get("children", [0])[0]
-                .get("data", [])
-                .get("author_fullname", "")
-                .replace("t2_", "")
-            )
-            print("ALERT .....", currPostAuthor, currPostAuthorID)
-            if currPostAuthor and currPostAuthorID:
-                add(
-                    currPostAuthor,
-                    currPostAuthorID,
-                    allUsers,
-                    resData[0]
-                    .get("data", {})
-                    .get("children", [0])[0]
-                    .get("data", [])
-                    .get("subreddit", ""),
-                    resData[0]
-                    .get("data", {})
-                    .get("children", [0])[0]
-                    .get("data", [])
-                    .get("subreddit_id", "")
-                    .replace("t5_", ""),
-                )
-
-            async def helper(_res_data, parent_id):
-                finalData = []
-                for comm in _res_data:
-                    # Comment txt : data->(author,author_fullname(t2),created_utc,body,id,ups)
-                    # Replies : replies->data->children[]
-
-                    tmp = {}
-                    notGotValues = 0
-
-                    tmp["subreddit_id"] = (
-                        comm.get("data", {}).get("subreddit_id", "").replace("t5_", "")
-                    )
-                    tmp["subreddit_name"] = comm.get("data", {}).get("subreddit", "")
-                    tmp["author"] = comm.get("data", {}).get("author", "")
-                    tmp["author_id"] = (
-                        comm.get("data", {})
-                        .get("author_fullname", "")
-                        .replace("t2_", "")
-                    )
-                    tmp["created_utc"] = comm.get("data", {}).get("created_utc", "")
-                    tmp["parent_comment_id"] = parent_id
-                    tmp["comment_id"] = comm.get("data", {}).get("id", "")
-                    tmp["comment"] = comm.get("data", {}).get("body", "")
-                    tmp["comment_html"] = comm.get("data", {}).get("body_html", "")
-                    if tmp["comment_html"]:
-                        tmp["comment_html"] = (
-                            tmp["comment_html"]
-                            .replace("&lt;", "<")
-                            .replace("&gt;", ">")
-                        )
-
-                    tmp["comment_ups"] = comm.get("data", {}).get("ups", "")
-                    tmp["category"] = topic
-
-                    for i in tmp:
-                        if tmp[i] == "":
-                            notGotValues += 1
-
-                    if notGotValues >= 4:
-                        continue
-
-                    author, authorID = tmp["author"], tmp["author_id"]
-
-                    if author and authorID:
-                        add(
-                            author,
-                            authorID,
-                            allUsers,
-                            tmp["subreddit_name"],
-                            tmp["subreddit_id"],
-                        )
-                    try:
-                        tmp["replies"] = await helper(
-                            comm.get("data", {})
-                            .get("replies", {})
-                            .get("data", {})
-                            .get("children", []),
-                            comm.get("data", {}).get("id", ""),
-                        )
-                    except Exception as e:
-                        tmp["replies"] = []
-
-                    finalData.append(dict(sorted(tmp.copy().items())))
-
-                return finalData
-
-            allComments = await helper(res_data, "isParent")
-            return allComments
+            # Handle Comment extraction
+            return await handle_comment_extraction(resData, url, topic)
 
         except Exception as e:
-            print("HERE: ...", len(res_data), url)
-            print(RESP_FROM_REQ)
-            print("\033[41m" + f"Error Occured:  {e} " + "\033[0m")
+
+            # If name resoltion error
+            if (
+                str(e)
+                == "Cannot connect to host reddit.com:443 ssl:default [Temporary failure in name resolution]"
+            ):
+
+                print("\033[41m" + f"Caught name resolution error:  {e} " + "\033[0m")
+                log_error(
+                    f"Url: {url} Message: SSL-Error Error : {str(e)}",
+                    "comments-errs.txt",
+                )
+
+                # Sleep for a minute
+                time.sleep(90)
+
+                # Same logic from above
+                resData = sync_send_request_comments(url)
+
+                # Handle Comment extraction
+                return await handle_comment_extraction(resData, url, topic)
+
+            else:
+                print("HERE: ...", len(res_data), url)
+                print("\033[41m" + f"Error Occured:  {e} " + "\033[0m")
+                log_error(f"Url: {url} Error : {e}", "comments-errs.txt")
 
 
+# Sanitize and encode reddit media URL
 def handleURL(encodedURL: str):
     if encodedURL.find("https://www.reddit.com/media") != -1:
         data = parse_qs(encodedURL)
@@ -287,6 +412,7 @@ def handleURL(encodedURL: str):
         return urllib.parse.unquote(encodedURL)
 
 
+# Parse reddit image,video,gallery image,multi-media content
 def post_content(data, subm):
     if hasattr(subm, "poll_data"):
         return {"type": "Invalid", "data": []}
@@ -778,7 +904,7 @@ if __name__ == "__main__":
     with open("users.json", "w") as f:
         json.dump(allUsers, f, indent=4)
 
-    # Log allcomments done
+    # Check allcomments done
     with open("comments-got.txt", "r") as fp:
         data1 = fp.readlines()
 
@@ -788,6 +914,6 @@ if __name__ == "__main__":
     data1 = set([i.split(" ")[-1].strip("\n") for i in data1])
     data2 = set([i.split(" ")[-1].strip("\n") for i in data2])
 
-    with open("comments-confirm.txt", "w") as fp:
+    with open("comments-status.txt", "w") as fp:
         status = data1 == data2
-        fp.write(f"{status}")
+        fp.write(f"{status} Got:{len(data1)} Retry:{len(data2)}")

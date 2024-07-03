@@ -6,6 +6,7 @@ start=$(date +%s)
 rm errs.txt
 touch errs.txt
 rm ./noposts.txt
+rm ./comments-got.txt ./comments-errs.txt ./comments-retry.txt
 
 for ((i = 0; i < 100; i++)); do
 	python subreddits.py && break
@@ -48,6 +49,7 @@ mongosh --eval "use reddit"
 # mongoimport -d socialmedia -c users --file ./users.json --jsonArray --uri "${CLUSTER_URI}"
 
 # Local import
+# mongoimport -d reddit -c subreddits --file ./subreddits_p1.json --jsonArray
 # mongoimport -d reddit -c posts --file ./posts_p1.json --jsonArray
 # mongoimport -d reddit -c users --file ./user_p1.json --jsonArray
 # mongoimport -d reddit -c users --file ./user_p2.json --jsonArray
