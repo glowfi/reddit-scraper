@@ -3,7 +3,7 @@
 </p>
 
 <p align="center">
-<img src="./logo.png"/>
+<img src="./images/logo.png"/>
 </p>
 
 ## Dependencies
@@ -22,15 +22,15 @@ created after scraping is completed.
 
 > A single Subreddit document look like this
 
-![One Subreddits document example](./subreddits.png)
+![One Subreddits document example](./images/subreddits.png)
 
 > A single Post document look like this
 
-![One Posts document example](./posts.png)
+![One Posts document example](./images/posts.png)
 
 > A single User document look like this
 
-![One Users document example](./users.png)
+![One Users document example](./images/users.png)
 
 ## Scripts Usage
 

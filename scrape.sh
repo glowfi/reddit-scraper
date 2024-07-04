@@ -9,7 +9,7 @@ rm ./noposts.txt
 rm ./comments-got.txt ./comments-errs.txt ./comments-retry.txt
 
 for ((i = 0; i < 100; i++)); do
-	python subreddits.py && break
+	python ./subreddit/subreddits.py && break
 	echo "Retrying.."
 	notify-send "Retrying subreddits..."
 	echo "Retrying subreddits ${i+1} ..." >>errs.txt
@@ -17,7 +17,7 @@ for ((i = 0; i < 100; i++)); do
 done
 
 for ((i = 0; i < 100; i++)); do
-	python posts.py && break
+	python ./post/posts.py && break
 	echo "Retrying.."
 	notify-send "Retrying posts..."
 	echo "Retrying posts ${i+1} ..." >>errs.txt
@@ -26,7 +26,7 @@ for ((i = 0; i < 100; i++)); do
 done
 
 for ((i = 0; i < 100; i++)); do
-	python users.py && break
+	python ./user/users.py && break
 	echo "Retrying.."
 	notify-send "Retrying users..."
 	echo "Retrying users ${i+1} ..." >>errs.txt
