@@ -1,9 +1,10 @@
 import aiohttp
 from bs4 import BeautifulSoup
 from helper.utils import getUserAgent
+import json
 
 
-# get trophies
+# Get trophies
 async def getTrophies():
     url = "https://www.reddit.com/wiki/trophies/"
     headers = {
@@ -34,6 +35,12 @@ async def getTrophies():
                 tmp["image_link"] = f"https:{image_link}"
                 text = row.get_text().strip("\n")
                 title = text.split("\n")[0]
+                description = (
+                    text.split("\n")[1]
+                    if len(text.split("\n")) > 1
+                    else text.split("\n")[0]
+                )
                 tmp["title"] = title
+                tmp["description"] = description
                 master.append(tmp)
-    return master
+    return [json.loads(i) for i in list(set([json.dumps(i) for i in master]))]

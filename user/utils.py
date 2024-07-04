@@ -1,4 +1,5 @@
 import random
+import uuid
 
 from bs4 import BeautifulSoup
 import requests
@@ -49,3 +50,8 @@ def getProfilePics():
                         tmp.append(link["href"])
                     master.append({"hex": text, "data": tmp})
     return master
+
+
+# Generate user profile pics alternate
+def getProfilePics_alternate():
+    return [f"https://robohash.org/{uuid.uuid4()}.png" for _ in range(1000)]

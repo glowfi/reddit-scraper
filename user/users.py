@@ -8,7 +8,7 @@ from helper.utils import (
     getUserAgent,
 )
 from user.get_user_info_alternate import getRedditorInfoAlternate
-from user.utils import getProfilePics
+from user.utils import getProfilePics_alternate
 
 # Logging
 start_logging()
@@ -24,7 +24,7 @@ user_agent = getUserAgent()
 
 async def main():
     tasks = []
-    profilePics = getProfilePics()
+    profilePics = getProfilePics_alternate()
 
     # rate_limit = AsyncLimiter(HIT_USERS, TIME_USERS)
     for user in userData:
