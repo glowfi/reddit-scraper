@@ -36,11 +36,11 @@ done
 ### Split Files into chunks for easy importing
 python split.py
 mkdir json
-mv *.json json/
+mv posts.json posts_p1.json subreddits.json subreddits_p1.json user_p1.json user_p2.json users.json json/
 
 ### Import data into mongodb
-mongosh --eval "use reddit" --eval "db.dropDatabase()"
-mongosh --eval "use reddit"
+# mongosh --eval "use reddit" --eval "db.dropDatabase()"
+# mongosh --eval "use reddit"
 
 # Cluster URI
 # CLUSTER_URI=$(echo -e '')
