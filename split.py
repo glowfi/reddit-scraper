@@ -1,49 +1,49 @@
 import json
 
-# Subreddits split array
-with open("./subreddits.json") as f:
-    data = json.load(f)
 
-arr1 = []
+def split_files():
 
-for topic in data:
-    for reddits in data[topic]:
-        arr1.append(reddits)
+    # Subreddits split array
+    with open("./subreddits.json") as f:
+        data = json.load(f)
 
-with open("./subreddits_p1.json", "w") as f:
-    json.dump(arr1, f)
+    arr1 = []
 
-# Posts split array
-with open("./posts.json") as f:
-    data = json.load(f)
+    for topic in data:
+        for reddits in data[topic]:
+            arr1.append(reddits)
 
-arr2 = []
+    with open("./subreddits_p1.json", "w") as f:
+        json.dump(arr1, f)
 
-for post in data:
-    arr2.append(post)
+    # Posts split array
+    with open("./posts.json") as f:
+        data = json.load(f)
 
-with open("./posts_p1.json", "w") as f:
-    json.dump(arr2, f)
+    arr2 = []
 
+    for post in data:
+        arr2.append(post)
 
-# User split array
-with open("./users.json") as f:
-    data = json.load(f)
+    with open("./posts_p1.json", "w") as f:
+        json.dump(arr2, f)
 
+    # User split array
+    with open("./users.json") as f:
+        data = json.load(f)
 
-c = 0
-arr1, arr2 = [], []
+    c = 0
+    arr1, arr2 = [], []
 
-for i in data:
-    if c > len(data) // 2:
-        arr2.append(data[i])
-    else:
-        arr1.append(data[i])
-    c += 1
+    for i in data:
+        if c > len(data) // 2:
+            arr2.append(data[i])
+        else:
+            arr1.append(data[i])
+        c += 1
 
+    with open("./user_p1.json", "w") as f:
+        json.dump(arr1, f)
 
-with open("./user_p1.json", "w") as f:
-    json.dump(arr1, f)
-
-with open("./user_p2.json", "w") as f:
-    json.dump(arr2, f)
+    with open("./user_p2.json", "w") as f:
+        json.dump(arr2, f)

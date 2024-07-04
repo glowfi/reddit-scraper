@@ -173,4 +173,6 @@ noposts.txt
 comments-got.txt
 comments-errs.txt
 comments-retry.txt
+comments-status.txt
+errs.txt
 ./jsons/**.**

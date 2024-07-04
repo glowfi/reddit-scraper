@@ -34,11 +34,12 @@ created after scraping is completed.
 
 ## Scripts Usage
 
--   **subreddits.py (Scrapes Subreddits)**
--   **posts.py (Scrapes Posts)**
--   **users.py (Scrapes Users)**
+-   **subreddit/subreddits.py (Scrapes Subreddits)**
+-   **post/posts.py (Scrapes Posts)**
+-   **user/users.py (Scrapes Users)**
 -   **split.py (To make it easier to import JSON data into databases like MongoDB, this will split the data into smaller chunks of json files prefixed by users_p1,users_p2,... so on)**
--   **scrape.sh (Runs all the above script one by one)**
+-   **import_data_to_mongodb.sh (Imports json data to MongoDB)**
+-   **scrape.py (Runs all the above script one by one)**
 
 ## Running the Script
 

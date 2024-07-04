@@ -61,36 +61,42 @@ async def main():
     await asyncio.gather(*tasks)
 
 
-if __name__ == "__main__":
-    # Final post data
-    finalPostsData = []
+### Global Variables
 
-    # Track users
-    allUsers = {}
-    seenUsers = set()
+# Final post data
+finalPostsData = []
 
-    # Awards and trophies
-    awards, trophies = [], []
+# Track users
+allUsers = {}
+seenUsers = set()
 
-    # Global varaibles(self explainatory)
-    POSTS_PER_SUBREDDIT = int(config.get("POSTS_PER_SUBREDDIT"))
-    TOTAL_SUBREDDITS_PER_TOPICS = int(config.get("TOTAL_SUBREDDITS_PER_TOPICS"))
-    topicsize = int(config.get("TOPIC_SIZE"))
-    TOTAL_REQUIRED_POSTS = TOTAL_SUBREDDITS_PER_TOPICS * topicsize * POSTS_PER_SUBREDDIT
+# Awards and trophies
+awards, trophies = [], []
 
-    DONE = [0]
+# Global varaibles(self explainatory)
+POSTS_PER_SUBREDDIT = int(config.get("POSTS_PER_SUBREDDIT"))
+TOTAL_SUBREDDITS_PER_TOPICS = int(config.get("TOTAL_SUBREDDITS_PER_TOPICS"))
+topicsize = int(config.get("TOPIC_SIZE"))
+TOTAL_REQUIRED_POSTS = TOTAL_SUBREDDITS_PER_TOPICS * topicsize * POSTS_PER_SUBREDDIT
+DONE = [0]
+subredditJSON = []
 
-    subredditJSON = []
+
+# Main run function
+async def run():
     with open("./subreddits.json", "r") as f:
+        global subredditJSON
         subredditJSON = json.load(f)
 
     # Get Trophies and awards
-    asyncio.run(waiter(awards, trophies))
+    global awards
+    global trophies
+    await waiter(awards, trophies)
     awards = awards[0]
     trophies = trophies[0]
 
     # Get Posts
-    asyncio.run(main())
+    await main()
 
     # Create Posts
     with open("posts.json", "w") as f:

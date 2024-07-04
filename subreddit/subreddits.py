@@ -35,18 +35,23 @@ async def main():
     await asyncio.gather(*tasks)
 
 
-if __name__ == "__main__":
-    # Get all subreddit names based on the topics above
-    master = {}
+### Global Variables
 
-    # Variables to track  topics done fetching subreddits
-    DONE = [len(topics)]
-    SUBREDDITS_DONE = [0]
+# Get all subreddit names based on the topics above
+master = {}
 
+# Variables to track  topics done fetching subreddits
+DONE = [len(topics)]
+SUBREDDITS_DONE = [0]
+
+
+# Main run function
+async def run():
     # Start scraping subreddits
-    asyncio.run(main())
+    await main()
 
     # Dump all subreddits per topicsize after scraping
+    global master
     master = dict(sorted(master.items()))
     with open("subreddits.json", "w") as fp:
         json.dump(master, fp, indent=4)

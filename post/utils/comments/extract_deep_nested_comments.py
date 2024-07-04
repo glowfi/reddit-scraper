@@ -69,7 +69,7 @@ async def extractDeepnestedComments(
                 trophies,
             )
         except Exception as e:
-            print(str(e))
+            # print(str(e))
             tmp["replies"] = []
 
         finalData.append(dict(sorted(tmp.copy().items())))

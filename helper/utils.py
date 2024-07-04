@@ -181,6 +181,22 @@ def generate_random_epoch():
     return random_epoch
 
 
+# Generate random hex color
+def generate_random_hex_color():
+    # Generate random RGB values
+    r = random.randint(0, 255)
+    g = random.randint(0, 255)
+    b = random.randint(0, 255)
+
+    # Convert to hexadecimal and make sure it's two digits long
+    r_hex = hex(r).lstrip("0x").zfill(2)
+    g_hex = hex(g).lstrip("0x").zfill(2)
+    b_hex = hex(b).lstrip("0x").zfill(2)
+
+    # Combine the RGB values into a single hex color string
+    return "#" + r_hex + g_hex + b_hex
+
+
 # Print messages colored
 def success(msg):
     print("\x1b[6;30;42m" + f"{msg}" + "\x1b[0m")
