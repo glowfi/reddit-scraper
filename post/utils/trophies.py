@@ -21,8 +21,9 @@ async def getTrophies():
 
     master = [
         {
-            "title": "Bellwether",
             "image_link": "https://a.thumbs.redditmedia.com/GnIq6cHQCTUioRxU4opnYO0PJibxEBb_K3cyln1tXJ0.png",
+            "title": "Bellwether",
+            "description": "Hang out on the new queue and flag carefully",
         }
     ]
     tables = soup.find_all("table")
