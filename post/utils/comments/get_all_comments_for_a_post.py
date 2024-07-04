@@ -1,6 +1,6 @@
 import time
 
-from helper.utils import log_message
+from helper.utils import danger, log_message
 from post.utils.comments.handle_comments_extraction import handle_comment_extraction
 from post.utils.comments.send_request_async_comments import send_request_comments_async
 from post.utils.comments.send_request_sync_comments import sync_send_request_comments
@@ -29,7 +29,8 @@ async def getComments(url, topic, rate_limit, allUsers, seenUsers, trophies):
                 == "Cannot connect to host reddit.com:443 ssl:default [Temporary failure in name resolution]"
             ):
 
-                print("\033[41m" + f"Caught name resolution error:  {e} " + "\033[0m")
+                danger(f"Caught name resolution error ssl:default 443:  {e} ")
+
                 log_message(
                     f"Url: {url} Message: SSL-Error Error : {str(e)}",
                     "comments-errs.txt",
@@ -48,5 +49,5 @@ async def getComments(url, topic, rate_limit, allUsers, seenUsers, trophies):
 
             else:
                 print("HERE: ...", len(res_data), url)
-                print("\033[41m" + f"Error Occured:  {e} " + "\033[0m")
+                danger(f"Error Occured:  {e} ")
                 log_message(f"Url: {url} Error : {e}", "comments-errs.txt")

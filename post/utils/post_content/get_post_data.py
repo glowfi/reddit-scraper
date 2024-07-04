@@ -3,7 +3,7 @@ import random
 
 from dotenv import dotenv_values
 
-from helper.utils import getUserAgent, sanitize_url, unix_to_relative_time
+from helper.utils import getUserAgent, sanitize_url, success, unix_to_relative_time
 from post.utils.comments.get_all_comments_for_a_post import getComments
 from post.utils.post_content.get_post_media_content import post_content
 
@@ -174,19 +174,12 @@ async def get_post_data_subreddit(
                         finalPostsData.append(dict(sorted(post_data.items())))
 
                         postCounter += 1
-                        print(
-                            "\x1b[6;30;42m"
-                            + f"POST COUNTER .................... {topic} {postCounter}"
-                            + "\x1b[0m"
+                        success(
+                            f"POST COUNTER .................... {topic} {postCounter}"
                         )
 
                         DONE[0] += 1
-                        print(
-                            "\x1b[6;30;42m"
-                            + f"TOTAL POSTS FETCHED ............  {DONE[0]}"
-                            + "\x1b[0m"
-                        )
-
+                        success(f"TOTAL POSTS FETCHED ............  {DONE[0]}")
                         if (
                             postCounter == POSTS_PER_SUBREDDIT
                             or DONE[0] >= TOTAL_REQUIRED_POSTS

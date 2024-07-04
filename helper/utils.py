@@ -179,3 +179,12 @@ def generate_random_epoch():
     random_epoch = int((start_date + timedelta(seconds=random_seconds)).timestamp())
 
     return random_epoch
+
+
+# Print messages colored
+def success(msg):
+    print("\x1b[6;30;42m" + f"{msg}" + "\x1b[0m")
+
+
+def danger(msg):
+    print("\033[41m" + msg + "\033[0m")

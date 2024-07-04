@@ -1,5 +1,5 @@
 import random
-from helper.utils import epoch_age, generate_random_epoch, getDate
+from helper.utils import epoch_age, generate_random_epoch, getDate, success
 from user.utils import generate_colors, generate_description
 
 
@@ -29,4 +29,4 @@ async def getRedditorInfoAlternate(aid, userInfo, profilePics, total_users):
     userInfo[aid]["iconcolor"] = hexColor
     userInfo[aid]["supended"] = False
     total_users[0] -= 1
-    print("\x1b[6;30;42m" + f"More {total_users} left ..." + "\x1b[0m")
+    success(f"More {total_users} left ...")

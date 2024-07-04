@@ -1,5 +1,5 @@
 from dotenv import dotenv_values
-from helper.utils import getUserAgent, unix_epoch_to_human_readable
+from helper.utils import getUserAgent, success, unix_epoch_to_human_readable
 import asyncpraw
 
 from subreddit.utils.getanchors import getAnchors
@@ -100,16 +100,13 @@ async def getSubredditsByTopics(topic, rate_limit, master, DONE, SUBREDDITS_DONE
                         print(f"Done {obj.get('display_name','NA')}")
                         SUBREDDITS_DONE[0] += 1
 
-                        print(
-                            "\x1b[6;30;42m"
-                            + f"TOTAL SUBREDDITS DONE :{SUBREDDITS_DONE} ........"
-                            + "\x1b[0m"
-                        )
+                        success(f"TOTAL SUBREDDITS DONE :{SUBREDDITS_DONE} ........")
+
                         break
                     postCount -= 1
 
             master[topic] = finalData
             DONE[0] -= 1
-            print("\x1b[6;30;42m" + f"TOTAL TOPICS left {DONE[0]} ......" + "\x1b[0m")
+            success(f"TOTAL TOPICS left {DONE[0]} ......")
 
     return "Done!"

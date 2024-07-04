@@ -1,7 +1,7 @@
 import json
 import time
 
-from helper.utils import log_message
+from helper.utils import danger, log_message, success
 from post.utils.comments.send_request_sync_comments import sync_send_request_comments
 
 
@@ -14,17 +14,11 @@ def keep_retrying(resData, url):
         if "kind" in resData:
             resData = json.loads(resData)
             if isinstance(resData, list) and len(resData) > 0 and "kind" in resData[0]:
-                print(
-                    "\x1b[6;30;42m"
-                    + f"Got Back data in {abs(MAX_RETRIES-NO_TRIES)+1} tries !"
-                    + "\x1b[0m"
-                )
+                success(f"Got Back data in {abs(MAX_RETRIES-NO_TRIES)+1} tries !")
                 log_message(f"Got {url}", "comments-got.txt")
                 break
         else:
-            print(
-                "\033[41m" + f"Retrying {abs(MAX_RETRIES-NO_TRIES)+1} ...." + "\033[0m"
-            )
+            danger(f"Retrying {abs(MAX_RETRIES-NO_TRIES)+1} ....")
             log_message(f"Retrying {url}", "comments-retry.txt")
 
             time.sleep(5)

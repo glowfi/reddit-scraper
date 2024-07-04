@@ -1,6 +1,6 @@
 import asyncpraw
 from dotenv import dotenv_values
-from helper.utils import epoch_age, getDate, getUserAgent
+from helper.utils import epoch_age, getDate, getUserAgent, success
 
 
 # Load DOTENV
@@ -87,9 +87,7 @@ async def getRedditorInfo(redditor_name, aid, userInfo, rate_limit, total_users)
                         userInfo[aid]["supended"] = False
 
                         total_users[0] -= 1
-                        print(
-                            "\x1b[6;30;42m" + f"More {total_users} left ..." + "\x1b[0m"
-                        )
+                        success(f"More {total_users} left ...")
 
                     except Exception as e:
                         with open("user_errors.txt", "a") as fp:
