@@ -19,6 +19,8 @@ user_agent = getUserAgent()
 
 
 async def getSubredditsByTopics(topic, rate_limit, master, DONE, SUBREDDITS_DONE):
+    seen_subreddits = set()
+
     async with rate_limit:
         print(f"Enterd {topic}")
         async with asyncpraw.Reddit(
@@ -30,6 +32,7 @@ async def getSubredditsByTopics(topic, rate_limit, master, DONE, SUBREDDITS_DONE
             ratelimit_seconds=300,
         ) as reddit:
             finalData = []
+
             TOTAL_SUBREDDITS_PER_TOPICS = int(config.get("TOTAL_SUBREDDITS_PER_TOPICS"))
             async for sreddit in reddit.subreddits.search(topic):
                 if TOTAL_SUBREDDITS_PER_TOPICS == 0:
@@ -41,6 +44,13 @@ async def getSubredditsByTopics(topic, rate_limit, master, DONE, SUBREDDITS_DONE
                 # Check for POST with alteast given amout of posts
                 subreddit = await reddit.subreddit(obj.get("display_name", ""))
                 postCount = int(config.get("POSTS_PER_SUBREDDIT"))
+
+                subreddit_name = str(obj.get("display_name_prefixed", ""))
+
+                if subreddit_name in seen_subreddits:
+                    continue
+                else:
+                    seen_subreddits.add(subreddit_name)
 
                 async for _ in subreddit.top():
                     if postCount == 0:
