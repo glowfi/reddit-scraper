@@ -18,8 +18,9 @@ client_secret = config.get("client_secret")
 user_agent = getUserAgent()
 
 
-async def getSubredditsByTopics(topic, rate_limit, master, DONE, SUBREDDITS_DONE):
-    seen_subreddits = set()
+async def getSubredditsByTopics(
+    topic, rate_limit, master, DONE, SUBREDDITS_DONE, seen_subreddits
+):
 
     async with rate_limit:
         print(f"Enterd {topic}")
@@ -46,11 +47,11 @@ async def getSubredditsByTopics(topic, rate_limit, master, DONE, SUBREDDITS_DONE
                 postCount = int(config.get("POSTS_PER_SUBREDDIT"))
 
                 subreddit_name = str(obj.get("display_name_prefixed", ""))
-
                 if subreddit_name in seen_subreddits:
                     continue
                 else:
-                    seen_subreddits.add(subreddit_name)
+                    print(subreddit_name, "SEEN")
+                    seen_subreddits[subreddit_name] = 1
 
                 async for _ in subreddit.top():
                     if postCount == 0:

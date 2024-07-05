@@ -29,7 +29,9 @@ async def main():
 
     for topic in list(set(topics[:topicsize])):
         tasks.append(
-            getSubredditsByTopics(topic, rate_limit, master, DONE, SUBREDDITS_DONE)
+            getSubredditsByTopics(
+                topic, rate_limit, master, DONE, SUBREDDITS_DONE, seen_subreddits
+            )
         )
 
     await asyncio.gather(*tasks)
@@ -39,6 +41,7 @@ async def main():
 
 # Get all subreddit names based on the topics above
 master = {}
+seen_subreddits = {}
 
 # Variables to track  topics done fetching subreddits
 DONE = [len(topics)]
@@ -55,3 +58,11 @@ async def run():
     master = dict(sorted(master.items()))
     with open("subreddits.json", "w") as fp:
         json.dump(master, fp, indent=4)
+
+    st = set()
+    for topiks in master:
+        for i in master[topiks]:
+            st.add(i["title"])
+
+    with open("count-sreddit.txt", "w") as fp:
+        fp.write(f"Sreddits Count: {len(st)}")

@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
 
-import sys
 import asyncio
 import os
 import time
@@ -29,13 +28,18 @@ async def run_script(script_name):
                 break
             else:
                 danger("Wrong script_name entered!")
-                sys.exit(1)
+                raise SystemExit
 
         except Exception as e:
-            danger(f"Retrying {abs(retries-curr_retry_count)} ...")
-            danger(f"Error occured {str(e)}")
+            danger(
+                f"Retrying script {script_name} {abs(retries-curr_retry_count)} times(s) ..."
+            )
+            danger(f"Error occured {script_name} {str(e)}")
             curr_retry_count -= 1
             time.sleep(6)
+
+    if curr_retry_count == 0:
+        raise SystemExit
 
 
 if __name__ == "__main__":

@@ -26,7 +26,7 @@ async def handle_comment_extraction(resData, url, topic, allUsers, seenUsers, tr
     NO_TRIES = ans[0]
     resData = ans[1]
 
-    # If out of tries return blank comments list
+    # If out of tries use alternate method
     if NO_TRIES == 0:
         log_message(
             f"Url: {url} Error : Bad Error Using alternate", "comments-errs.txt"

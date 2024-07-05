@@ -79,5 +79,5 @@ TIME_USERS=60
 > Execute the script
 
 ```sh
-./scrape.sh
+./scrape.py
 ```
