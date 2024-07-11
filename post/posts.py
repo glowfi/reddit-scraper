@@ -3,6 +3,7 @@ from dotenv import dotenv_values
 
 import asyncio
 from aiolimiter import AsyncLimiter
+import random
 
 from helper.utils import start_logging, getUserAgent
 from post.utils.awards import getAwards
@@ -97,6 +98,21 @@ async def run():
 
     # Get Posts
     await main()
+
+    # Possible Bug Fix [Some authors of posts are not added]
+    for posts in finalPostsData:
+        subreddit, subredditID = posts["subreddit"], posts["subreddit_id"]
+        if posts["author_id"] and posts["author_id"] not in allUsers:
+            tmp = {
+                "id": posts["author_id"],
+                "username": posts["author"],
+                "password": "pass",
+                "subreddits_member": (
+                    [[subredditID, subreddit]] if subreddit and subredditID else []
+                ),
+                "trophies": random.choices(trophies, k=random.randint(1, 5)),
+            }
+            allUsers[posts["author_id"]] = tmp
 
     # Create Posts
     with open("posts.json", "w") as f:

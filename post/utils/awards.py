@@ -1,6 +1,7 @@
 import aiohttp
 from bs4 import BeautifulSoup
 from helper.utils import getUserAgent
+import json, asyncio
 
 
 # get awards
@@ -31,3 +32,11 @@ async def getAwards():
                 tmp["image_link"] = f"{image_link}"
                 master.append(tmp)
     return master
+
+
+async def get_res():
+    with open("./awards.json", "w") as fp:
+        json.dump(await getAwards(), fp)
+
+
+asyncio.run(get_res())

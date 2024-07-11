@@ -59,5 +59,5 @@ async def run():
     await main()
 
     # Dump all users
-    # with open("./users.json", "w") as f:
-    #     json.dump(userData, f, indent=4)
+    with open("./users.json", "w") as f:
+        json.dump(userData, f, indent=4)

@@ -1,4 +1,5 @@
 bash -c 'fd . | grep *__pycache__/ | xargs -I "{}" rm -rf "{}"'
+rm -rf awards.json trophies.json
 rm -rf posts.json
 rm -rf posts_p1.json
 rm -rf subreddits.json

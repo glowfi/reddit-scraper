@@ -1,7 +1,7 @@
 import aiohttp
 from bs4 import BeautifulSoup
 from helper.utils import getUserAgent
-import json
+import json, asyncio
 
 
 # Get trophies
@@ -45,3 +45,11 @@ async def getTrophies():
                 tmp["description"] = description
                 master.append(tmp)
     return [json.loads(i) for i in list(set([json.dumps(i) for i in master]))]
+
+
+async def get_res():
+    with open("./trophies.json", "w") as fp:
+        json.dump(await getTrophies(), fp)
+
+
+asyncio.run(get_res())

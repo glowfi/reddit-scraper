@@ -64,7 +64,7 @@ if __name__ == "__main__":
     split_files()
     os.system("mkdir json")
     os.system(
-        "mv posts.json posts_p1.json subreddits.json subreddits_p1.json user_p1.json user_p2.json users.json json/"
+        "mv posts.json posts_p1.json subreddits.json subreddits_p1.json user_p1.json user_p2.json users.json awards.json trophies.json json/"
     )
 
     # End measuring time
