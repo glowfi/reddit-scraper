@@ -162,6 +162,8 @@ cython_debug/
 #.idea/
 
 # Custom
+awards.json
+trophies.json
 posts.json
 posts_p1.json
 subreddits.json
@@ -174,5 +176,6 @@ comments-got.txt
 comments-errs.txt
 comments-retry.txt
 comments-status.txt
+count-sreddit.txt
 errs.txt
-./jsons/**.**
+json/*.json
