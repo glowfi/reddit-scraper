@@ -25,6 +25,7 @@ for file in files:
 
 
 # Handle Subreddits
+print("Handling Subreddits ...")
 old_sreddits = []
 for topic in readDataOld[3]:
     for sreddit in readDataOld[3][topic]:
@@ -53,6 +54,7 @@ with open("subreddits.json", "w") as fp:
 
 
 # Handle Posts
+print("Handling Posts ...")
 idx = 0
 for post_new in readDataNew[2]:
     for post_old in readDataOld[2]:
@@ -65,6 +67,7 @@ with open("posts.json", "w") as fp:
 
 
 # Handle Users
+print("Handling Users ...")
 st = set()
 for user in readDataNew[-1]:
     if user in readDataOld[-1]:
