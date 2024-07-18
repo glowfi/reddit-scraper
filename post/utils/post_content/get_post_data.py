@@ -104,7 +104,7 @@ async def get_post_data_subreddit(
                                 seenUsers,
                                 trophies,
                             ),
-                            "media_metadata": dat,
+                            "media_content": dat,
                             "createdat": data["created_utc"],
                             "createdatHuman": unix_to_relative_time(
                                 data["created_utc"]
