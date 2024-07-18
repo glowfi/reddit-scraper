@@ -113,7 +113,9 @@ async def get_post_data_subreddit(
                             "text_html": "",
                             "over_18": data.get("over_18", ""),
                             "spoiler": data.get("spoiler", ""),
-                            "link_type": True,
+                            "link_type": (
+                                False if "https://i.redd.it" in data["url"] else True
+                            ),
                             "category": topic,
                         }
 
