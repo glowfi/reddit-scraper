@@ -75,4 +75,4 @@ def split_files():
         json.dump(arr2, f)
 
 
-split_files()
+# split_files()
