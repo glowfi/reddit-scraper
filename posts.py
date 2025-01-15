@@ -188,7 +188,10 @@ if not client_id or not client_secret or not username or not password:
     raise Exception("please give credentials in .env file")
 
 if not POSTS_SORT_FILTER or not POSTS_PER_SUBREDDIT:
-    raise Exception("please give posts sort filter and posts per subreddit")
+    raise Exception(
+        "please give posts sort filter and posts per subreddit in .env file"
+    )
+POSTS_PER_SUBREDDIT = int(POSTS_PER_SUBREDDIT)
 
 
 def unix_to_relative_time(unix_time):

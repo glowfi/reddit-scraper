@@ -181,7 +181,10 @@ if not client_id or not client_secret or not username or not password:
     raise Exception("please give credentials in .env file")
 
 if not SUBREDDIT_SORT_FILTER or not TOTAL_SUBREDDITS_PER_TOPICS:
-    raise Exception("please give subreddit sort filter and subreddits per topics")
+    raise Exception(
+        "please give subreddit sort filter and subreddits per topics in .env file"
+    )
+TOTAL_SUBREDDITS_PER_TOPICS = int(TOTAL_SUBREDDITS_PER_TOPICS)
 
 
 # Get Human Readable Date [Unix epoch to human readable data]
