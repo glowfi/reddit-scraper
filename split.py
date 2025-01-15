@@ -1,5 +1,4 @@
 import json
-import copy
 
 
 def split_files():
@@ -20,31 +19,6 @@ def split_files():
     # Posts split array
     with open("./posts.json") as f:
         data = json.load(f)
-
-    # change media_metadata to media_content
-    c = 0
-    for post in data:
-        if "media_metadata" in post:
-            copied_dict = copy.deepcopy(post)
-            data[c]["media_content"] = copied_dict["media_metadata"]
-            del data[c]["media_metadata"]
-        c += 1
-
-    # Make link_type false if this "https://i.reddit" is found
-    idx = 0
-    for post in data:
-        if post["link_type"]:
-            if "https://i.redd.it" in post["text"]:
-                data[idx]["link_type"] = False
-            if "media_content" in post and post["media_content"]["type"] == "video":
-                data[idx]["link_type"] = False
-            if "media_content" in post and post["media_content"]["type"] == "gallery":
-                data[idx]["link_type"] = False
-
-        idx += 1
-
-    with open("./posts.json", "w") as f:
-        json.dump(data, f)
 
     arr2 = []
 
@@ -73,6 +47,3 @@ def split_files():
 
     with open("./user_p2.json", "w") as f:
         json.dump(arr2, f)
-
-
-# split_files()
