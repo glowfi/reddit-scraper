@@ -162,6 +162,13 @@ cython_debug/
 #.idea/
 
 # Custom
-*.json
+posts.json
+posts_p1.json
+pyrightconfig.json
+subreddits.json
+subreddits_p1.json
+user_p1.json
+user_p2.json
+users.json
 *.log 
 *.txt

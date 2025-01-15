@@ -1,0 +1,234 @@
+{
+    "Anime & Cosplay": ["Anime & Manga", "Cosplay"],
+    "Art": [
+        "Performing Arts",
+        "Architecture",
+        "Design",
+        "Art",
+        "Filmmaking",
+        "Digital Art",
+        "Photography"
+    ],
+    "Business & Finance": [
+        "Personal Finance",
+        "Crypto",
+        "Economics",
+        "Business News & Discussion",
+        "Deals & Marketplace",
+        "Startups & Entrepreneurship",
+        "Real Estate",
+        "Stocks & Investing"
+    ],
+    "Collectibles & Other Hobbies": [
+        "Model Building",
+        "Collectibles",
+        "Other Hobbies",
+        "Toys"
+    ],
+    "Education & Career": ["Studying & Education", "Career"],
+    "Fashion & Beauty": [
+        "Nails",
+        "Hair",
+        "Makeup",
+        "Fashion",
+        "Accessories & Jewelry",
+        "Beauty & Grooming",
+        "Weddings",
+        "Tattoos & Piercings",
+        "Skincare",
+        "Watches",
+        "Streetwear & Sneakers"
+    ],
+    "Food & Drinks": [
+        "Food & Recipes",
+        "Non-Alcoholic Beverages",
+        "Baking & Desserts",
+        "Barbecues & Grilling",
+        "Food industry & Restaurants",
+        "Vegetarian & Vegan Food",
+        "Alcoholic Beverages"
+    ],
+    "Games": [
+        "Other Games",
+        "Gaming Consoles & Gear",
+        "Esports",
+        "Adventure Games",
+        "Gaming News & Discussion",
+        "Action Games",
+        "Strategy Games",
+        "Simulation Games",
+        "Role-Playing Games",
+        "Sports & Racing Games",
+        "Tabletop Games",
+        "Mobile Games"
+    ],
+    "Health": [
+        "Mental Health",
+        "Trauma Support",
+        "Addiction Support",
+        "Pregnancy",
+        "Medical Health"
+    ],
+    "Home & Garden": [
+        "Home Inspiration & Decor",
+        "House Plants",
+        "DIY & Crafts",
+        "Gardening & Farming",
+        "Sustainable Living",
+        "Home Improvement"
+    ],
+    "Humanities & Law": ["Ethics & Philosophy", "Law", "History", "Languages"],
+    "Identity & Relationships": [
+        "Relationships",
+        "Gender & Sexual Orientation",
+        "Family & Parenting",
+        "Religion & Spirituality",
+        "Culture, Race, & Ethnicity",
+        "Love & Dating"
+    ],
+    "Internet Culture": [
+        "Memes",
+        "Animals & Pets",
+        "Cringe & Facepalm",
+        "Reddit Meta",
+        "Amazing",
+        "Funny",
+        "Crazy & Shocking",
+        "Wholesome & Heartwarming",
+        "Interesting",
+        "Oddly Satisfying"
+    ],
+    "Movies & TV": [
+        "Comedy Movies & Series",
+        "Action Movies & Series",
+        "Fantasy Movies & Series",
+        "Documentary Movies & Series",
+        "Drama Movies & Series",
+        "Crime, Mystery, & Thriller Movies & Series",
+        "Animated Movies & Series",
+        "Sci-Fi Movies & Series",
+        "Romance Movies & Series",
+        "Reality TV",
+        "TV News & Discussion",
+        "Superhero Movies & Series",
+        "Horror Movies & Series",
+        "Movie News & Discussion"
+    ],
+    "Music": [
+        "Musical Instruments & Singing",
+        "Classical Music",
+        "Indie & Alternative Music",
+        "K-Pop",
+        "Music News & Discussion",
+        "Dance & Electronic Music",
+        "Country Music",
+        "Hip-Hop & Rap Music",
+        "Other Music Genres",
+        "Jazz Music",
+        "Rock Music",
+        "R&B Music",
+        "Pop Music",
+        "Metal Music",
+        "Music Production"
+    ],
+    "Nature & Outdoors": [
+        "Fishing",
+        "Camping & Hiking",
+        "Hunting",
+        "Nature & Wildlife"
+    ],
+    "News & Politics": ["News", "Activism", "Politics"],
+    "Places & Travel": [
+        "Places in Africa",
+        "Places in Europe",
+        "Places in Australia & Oceania",
+        "Places in Asia",
+        "Places in South America",
+        "Places in North America",
+        "Places in the Middle East",
+        "Travel & Holiday"
+    ],
+    "Pop Culture": [
+        "Generations & Nostalgia",
+        "Creators & Influencers",
+        "Celebrities",
+        "Podcasts",
+        "Streamers",
+        "Tarot & Astrology"
+    ],
+    "Q&As & Stories": ["Stories & Confessions", "Q&As"],
+    "Reading & Writing": ["Comics", "Books & Literature", "Writing"],
+    "Sciences": [
+        "Biological Sciences",
+        "Engineering",
+        "Physics",
+        "Mathematics",
+        "Climate & Environment",
+        "Other Sciences",
+        "Science News & Discussion",
+        "Psychology & Sociology",
+        "Geography",
+        "Data Science",
+        "Chemistry",
+        "Space & Astronomy"
+    ],
+    "Spooky": [
+        "Paranormal & Unexplained",
+        "Weird & Unusual",
+        "True Crime",
+        "Creepy"
+    ],
+    "Sports": [
+        "Ice Hockey",
+        "College Sports",
+        "Basketball",
+        "Bikes & Cycling",
+        "Cricket",
+        "Baseball",
+        "Soccer",
+        "Rugby",
+        "Racket Sports",
+        "Motor Sports",
+        "Golf",
+        "Wrestling & Combat Sports",
+        "Football",
+        "Winter Sports",
+        "Water Sports",
+        "Sports News & Discussion",
+        "Other Sports"
+    ],
+    "Technology": [
+        "Consumer Electronics",
+        "DIY Electronics",
+        "Artificial Intelligence & Machine Learning",
+        "Computers & Hardware",
+        "Programming",
+        "Software & Apps",
+        "Virtual & Augmented Reality",
+        "3D Printing",
+        "Tech News & Discussion",
+        "Streaming Services"
+    ],
+    "Vehicles": [
+        "Motorcycles",
+        "Cars & Trucks",
+        "Boating & Sailing",
+        "Aviation",
+        "Trains & Public Transportation"
+    ],
+    "Wellness": [
+        "Diet & Nutrition",
+        "Motivation & Self-Improvement",
+        "Fitness",
+        "Weight Loss"
+    ],
+    "Adult Content": ["Adult Content"],
+    "Mature Topics": [
+        "No Topic/ Other Topic",
+        "Guns & Weapons",
+        "Smoking & Vaping",
+        "Gambling",
+        "Illegal & Recreational Drugs",
+        "Military"
+    ]
+}
