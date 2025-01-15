@@ -1,4 +1,3 @@
-from _typeshed import SupportsNext
 import sys
 import traceback
 import logging
