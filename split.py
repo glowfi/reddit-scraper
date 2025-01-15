@@ -37,9 +37,9 @@ def split_files():
 
     for i in data:
         if c > len(data) // 2:
-            arr2.append(data[i])
+            arr2.append(i)
         else:
-            arr1.append(data[i])
+            arr1.append(i)
         c += 1
 
     with open("./user_p1.json", "w") as f:

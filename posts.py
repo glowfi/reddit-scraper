@@ -833,7 +833,7 @@ def run():
         with open("request_status.txt", "a") as f:
             for result in post_results_per_subreddit:
                 writeResult(
-                    result["subreddit"] + "posts-per-subreddit", result["result_state"]
+                    result["subreddit"] + " posts-per-subreddit", result["result_state"]
                 )
             f.write("\n")
 
@@ -850,7 +850,7 @@ def run():
             with open("request_status.txt", "a") as f:
                 for result in post_results_per_subreddit:
                     writeResult(
-                        result["subreddit"] + f"post-by-id {post_id}",
+                        result["subreddit"] + f" post-by-id {post_id}",
                         result["result_state"],
                     )
                 f.write("\n")
