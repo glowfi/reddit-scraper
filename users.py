@@ -5,6 +5,8 @@ import time
 from datetime import timedelta
 import uuid
 
+from posts import Trophies
+
 
 class User(TypedDict):
     id: str
@@ -20,6 +22,7 @@ class User(TypedDict):
     primarycolor: str
     iconcolor: str
     suspended: bool
+    trophies: list[Trophies]
 
 
 # Generate random unix epoch
@@ -142,7 +145,7 @@ def getProfilePics_alternate():
     return [f"https://robohash.org/{uuid.uuid4()}.png" for _ in range(1000)]
 
 
-def generate_user_info(id: str, name: str) -> User:
+def generate_user_info(id: str, name: str, trophies: list[Trophies]) -> User:
     cake_day_utc = generate_random_epoch()
     primaryColor, keyColor = generate_colors()
 
@@ -160,5 +163,6 @@ def generate_user_info(id: str, name: str) -> User:
         "primarycolor": primaryColor,
         "iconcolor": generate_random_hex_color(),
         "suspended": False,
+        "trophies": random.choices(trophies, k=random.randint(1, 5)),
     }
     return new_user

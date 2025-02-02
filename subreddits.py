@@ -14,11 +14,15 @@ import requests
 from requests.exceptions import HTTPError
 from urllib3.util.retry import Retry
 from requests.adapters import HTTPAdapter
+import urllib.parse
+from urllib.parse import parse_qs
+import html
 
 from colorama import Fore, Style
 from numerize import numerize
 from dotenv import dotenv_values
 
+from posts import Trophies, fetchTrophies
 from users import User, generate_user_info
 
 
@@ -100,63 +104,6 @@ class SubredditModeratorsResult(TypedDict):
     subreddit: str
     moderators: Any | None
     result_state: ResultState
-
-
-TOPICS = [
-    "Activism",
-    "AddictionSupport",
-    "Animals and Pets",
-    "Art",
-    "Beauty and Makeup",
-    "Business,Economics,and Finance",
-    "Careers",
-    "Cars and MotorVehicles",
-    "Celebrity",
-    "Crafts and DIY",
-    "Crypto",
-    "Culture,Race,and Ethnicity",
-    "Ethics and Philosophy",
-    "Family and Relationships",
-    "Fashion",
-    "Fitness and Nutrition",
-    "Food and Drink",
-    "Funny/Humor",
-    "Gaming",
-    "Gender",
-    "History",
-    "Hobbies",
-    "Home and Garden",
-    "InternetCulture and Memes",
-    "Law",
-    "Learning and Education",
-    "Marketplace and Deals",
-    "MatureThemes and AdultContent",
-    "Medical and MentalHealth",
-    "Mens Health",
-    "Meta/Reddit",
-    "Military",
-    "Movies",
-    "Music",
-    "Outdoors and Nature",
-    "Place",
-    "Podcasts and Streamers",
-    "Politics",
-    "Programming",
-    "Reading,Writing,and Literature",
-    "Religion and Spirituality",
-    "Science",
-    "SexualOrientation",
-    "Sports",
-    "TabletopGames",
-    "Technology",
-    "Television",
-    "TraumaSupport",
-    "Travel",
-    "Womens Health",
-    "World News",
-]
-# QPM = 85
-# MINUTES = 60
 
 
 # Set up logging
@@ -255,11 +202,13 @@ def getToken(params: dict[str, str], headers: dict[str, str], timeout: int) -> s
     return resp["access_token"]
 
 
-def buildSubredditModerators(raw_json: Any) -> list[User]:
+def buildSubredditModerators(raw_json: Any, trophies: list[Trophies]) -> list[User]:
     moderators: list[User] = []
     for moderator in raw_json.get("data", {}).get("children", []):
         moderators.append(
-            generate_user_info(moderator["id"].replace("t2_", ""), moderator["name"])
+            generate_user_info(
+                moderator["id"].replace("t2_", ""), moderator["name"], trophies
+            )
         )
 
     return moderators
@@ -582,6 +531,15 @@ def fetchSubredditsByTopic(
         }
 
 
+def handleURL(encodedURL: str):
+    if encodedURL.find("https://www.reddit.com/media") != -1:
+        data = parse_qs(encodedURL)
+        return [data[item] for item in data][0][0]
+
+    else:
+        return urllib.parse.unquote(html.unescape(encodedURL))
+
+
 def buildSubreddit(
     raw_json: Any, topic: str, total_subreddits_per_topics: int
 ) -> list[Subreddit]:
@@ -616,9 +574,11 @@ def buildSubreddit(
             new_subreddit["public_description"] = subreddit.get(
                 "public_description", ""
             )
-            new_subreddit["community_icon"] = subreddit.get("community_icon", "")
-            new_subreddit["banner_background_image"] = subreddit.get(
-                "banner_background_image", ""
+            new_subreddit["community_icon"] = handleURL(
+                subreddit.get("community_icon", "")
+            )
+            new_subreddit["banner_background_image"] = handleURL(
+                subreddit.get("banner_img", "")
             )
             new_subreddit["category"] = topic
 
@@ -666,49 +626,6 @@ def writeResult(
         f.write("\n")
 
 
-# returns list of name of subreddits
-# def getSubredditsRelevantToTopics(acc_token: str):
-#     offset = min(QPM, len(topics))
-#     startIdx = 0
-#     endIdx = startIdx + offset
-
-#     while endIdx <= len(topics):
-
-#         results: list[SubredditResult] = []
-
-#         with concurrent.futures.ThreadPoolExecutor(
-#             max_workers=(endIdx - startIdx)
-#         ) as executor:
-#             futures = {
-#                 executor.submit(
-#                     fetchSubredditsByTopic,
-#                     topic,
-#                     acc_token,
-#                 ): topic
-#                 for topic in (topics[startIdx:endIdx])
-#             }
-#             for future in concurrent.futures.as_completed(futures):
-#                 try:
-#                     result = future.result()
-#                     topic = result["topic"]
-#                     buildSubredditInfo(result["subreddits"], topic)
-#                     results.append(result)
-#                 except Exception:
-#                     print("Moving to next topic ...")
-
-#         with open("request_status.txt", "a") as f:
-#             for result in results:
-#                 f.write(
-#                     f"Topic: {result['topic']}, Status Code: {result['status_code']}, Success: {result['success']}, Error: {result['error']}\n"
-#                 )
-#             f.write("\n")
-#         startIdx = endIdx
-#         endIdx = startIdx + offset
-#         if endIdx <= len(topics):
-#             break
-#         time.sleep(MINUTES)
-
-
 def run():
     params = {
         "grant_type": "password",
@@ -720,6 +637,24 @@ def run():
 
     if not acc_token:
         sys.exit(1)
+
+    # Get all trophies
+    TOPICS = []
+    with open("./topic.json", "r") as fp:
+        data: dict[str, list[str]] = json.load(fp)
+        final: list[str] = []
+
+        if not data:
+            raise Exception("no topics found")
+
+        for topics in data.values():
+            final += topics
+        TOPICS = sorted(final)
+    if not TOPICS:
+        raise Exception("no topics found!")
+
+    # Get all trophies
+    trophies: list[Trophies] = fetchTrophies()
 
     # Get subreddits
     results: list[SubredditResult] = []
@@ -818,7 +753,7 @@ def run():
                 results4.append(raw_json_moderators)
                 if raw_json_moderators.get("moderators", ""):
                     subreddits[topic][idx]["moderators"] = buildSubredditModerators(
-                        raw_json_moderators.get("moderators")
+                        raw_json_moderators.get("moderators"), trophies
                     )
                 else:
                     subreddits[topic][idx]["moderators"] = []
