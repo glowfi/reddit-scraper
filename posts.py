@@ -127,18 +127,6 @@ class Media_Content(TypedDict, total=False):
     )
 
 
-class ResultState(TypedDict):
-    status_code: int
-    success: bool
-    error: str
-
-
-class PostResult(TypedDict):
-    subreddit: str
-    posts: Any | None
-    result_state: ResultState
-
-
 class Post(TypedDict):
     id: str
     subreddit: str
@@ -159,6 +147,18 @@ class Post(TypedDict):
     text_html: str
     over_18: bool
     spoiler: bool
+
+
+class ResultState(TypedDict):
+    status_code: int
+    success: bool
+    error: str
+
+
+class PostResult(TypedDict):
+    subreddit: str
+    posts: Any | None
+    result_state: ResultState
 
 
 class PostArticleResult(TypedDict):
