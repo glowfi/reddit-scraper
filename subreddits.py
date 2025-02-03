@@ -22,8 +22,7 @@ from colorama import Fore, Style
 from numerize import numerize
 from dotenv import dotenv_values
 
-from posts import Trophies, fetchTrophies
-from users import User, generate_user_info
+from users import User, generate_user_info, Trophies, fetchTrophies
 
 
 class AccessTokenResponse(TypedDict):
@@ -532,6 +531,8 @@ def fetchSubredditsByTopic(
 
 
 def handleURL(encodedURL: str):
+    if not encodedURL:
+        return ""
     if encodedURL.find("https://www.reddit.com/media") != -1:
         data = parse_qs(encodedURL)
         return [data[item] for item in data][0][0]
@@ -575,10 +576,10 @@ def buildSubreddit(
                 "public_description", ""
             )
             new_subreddit["community_icon"] = handleURL(
-                subreddit.get("community_icon", "")
+                subreddit.get("community_icon", ""),
             )
             new_subreddit["banner_background_image"] = handleURL(
-                subreddit.get("banner_img", "")
+                subreddit.get("banner_img", ""),
             )
             new_subreddit["category"] = topic
 
@@ -638,7 +639,7 @@ def run():
     if not acc_token:
         sys.exit(1)
 
-    # Get all trophies
+    # Get all topics
     TOPICS = []
     with open("./topic.json", "r") as fp:
         data: dict[str, list[str]] = json.load(fp)

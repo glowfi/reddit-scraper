@@ -1,11 +1,84 @@
 from typing import TypedDict
 import random
-import datetime
 import time
-from datetime import timedelta
 import uuid
+import json
+import datetime
+from datetime import timedelta
 
-from posts import Trophies
+import requests
+from urllib3.util.retry import Retry
+from requests.adapters import HTTPAdapter
+
+from bs4 import BeautifulSoup
+
+
+class Trophies(TypedDict):
+    title: str
+    description: str
+    image_link: str
+
+
+# Get New Session
+def getSession() -> requests.Session:
+    session = requests.session()
+    retries = Retry(
+        total=5,
+        # total=1,
+        backoff_factor=2,  # Exponential backoff
+        status_forcelist=[429, 500, 502, 503, 504, 443],
+    )
+    adapter = HTTPAdapter(max_retries=retries)
+    session.mount("https://", adapter)
+    return session
+
+
+# Fetch trophies
+def fetchTrophies() -> list[Trophies]:
+    session = getSession()
+
+    try:
+        url = "https://www.reddit.com/wiki/trophies/"
+        html_content = session.get(url)
+        soup = BeautifulSoup(html_content.text, "html5lib")
+
+        trophies: list[Trophies] = [
+            {
+                "image_link": "https://a.thumbs.redditmedia.com/GnIq6cHQCTUioRxU4opnYO0PJibxEBb_K3cyln1tXJ0.png",
+                "title": "Bellwether",
+                "description": "Hang out on the new queue and flag carefully",
+            }
+        ]
+        tables = soup.find_all("table")
+        for table in tables:
+            for row in table.find_all("tr"):
+                # Extract image link
+                image_link = row.find("img")["src"] if row.find("img") else None
+                new_trophy: Trophies = {
+                    "description": "",
+                    "image_link": "",
+                    "title": "",
+                }
+
+                if image_link:
+                    new_trophy["image_link"] = f"https:{image_link}"
+                    text = row.get_text().strip("\n")
+                    title = text.split("\n")[0]
+                    description = (
+                        text.split("\n")[1]
+                        if len(text.split("\n")) > 1
+                        else text.split("\n")[0]
+                    )
+                    new_trophy["title"] = title
+                    new_trophy["description"] = description
+
+                    trophies.append(new_trophy)
+
+        return [json.loads(i) for i in list(set([json.dumps(i) for i in trophies]))]
+
+    except Exception as e:
+        print(e)
+        return []
 
 
 class User(TypedDict):

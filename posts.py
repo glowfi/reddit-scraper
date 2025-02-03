@@ -20,7 +20,7 @@ from bs4 import BeautifulSoup
 from dotenv import dotenv_values
 
 from subreddits import Subreddit, writeResult
-from users import User, generate_user_info
+from users import User, generate_user_info, Trophies, fetchTrophies
 
 
 class AccessTokenResponse(TypedDict):
@@ -28,12 +28,6 @@ class AccessTokenResponse(TypedDict):
     token_type: str
     expires_in: int
     scope: str
-
-
-class Trophies(TypedDict):
-    title: str
-    description: str
-    image_link: str
 
 
 class Awards(TypedDict):
@@ -293,53 +287,6 @@ def fetchAwards() -> list[Awards]:
         return []
 
 
-def fetchTrophies() -> list[Trophies]:
-    session = getSession()
-
-    try:
-        url = "https://www.reddit.com/wiki/trophies/"
-        html_content = session.get(url)
-        soup = BeautifulSoup(html_content.text, "html5lib")
-
-        trophies: list[Trophies] = [
-            {
-                "image_link": "https://a.thumbs.redditmedia.com/GnIq6cHQCTUioRxU4opnYO0PJibxEBb_K3cyln1tXJ0.png",
-                "title": "Bellwether",
-                "description": "Hang out on the new queue and flag carefully",
-            }
-        ]
-        tables = soup.find_all("table")
-        for table in tables:
-            for row in table.find_all("tr"):
-                # Extract image link
-                image_link = row.find("img")["src"] if row.find("img") else None
-                new_trophy: Trophies = {
-                    "description": "",
-                    "image_link": "",
-                    "title": "",
-                }
-
-                if image_link:
-                    new_trophy["image_link"] = f"https:{image_link}"
-                    text = row.get_text().strip("\n")
-                    title = text.split("\n")[0]
-                    description = (
-                        text.split("\n")[1]
-                        if len(text.split("\n")) > 1
-                        else text.split("\n")[0]
-                    )
-                    new_trophy["title"] = title
-                    new_trophy["description"] = description
-
-                    trophies.append(new_trophy)
-
-        return [json.loads(i) for i in list(set([json.dumps(i) for i in trophies]))]
-
-    except Exception as e:
-        print(e)
-        return []
-
-
 def fetchPostsBySubreddt(
     filter: str, limit: int, subreddit: str, token: str
 ) -> PostResult:
@@ -480,6 +427,8 @@ def fetchPostArticleByPostID(
 
 # Sanitize and encode reddit media URL
 def handleURL(encodedURL: str):
+    if not encodedURL:
+        return ""
     if encodedURL.find("https://www.reddit.com/media") != -1:
         data = parse_qs(encodedURL)
         return [data[item] for item in data][0][0]
