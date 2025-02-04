@@ -2,5 +2,9 @@ rm -rf __pycache__
 rm -rf request_status.txt
 rm -rf api_requests.log
 rm -rf subreddits.json
+rm -rf subreddits_p1.json
 rm -rf posts.json
+rm -rf posts_p1.json
 rm -rf users.json
+rm -rf users_p1.json
+rm -rf users_p2.json

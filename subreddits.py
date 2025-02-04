@@ -23,6 +23,7 @@ from numerize import numerize
 from dotenv import dotenv_values
 
 from users import User, generate_user_info, Trophies, fetchTrophies
+from agents import getUserAgent
 
 
 class AccessTokenResponse(TypedDict):
@@ -164,12 +165,12 @@ def unix_epoch_to_human_readable(unixtime):
 
 
 # Get Custom User agent string
-def getUserAgent() -> str:
-    letters = string.ascii_lowercase
-    length = 10
-    return f"User agent by {str(uuid.uuid4())}-" + "".join(
-        random.choice(letters) for _ in range(length)
-    )
+# def getUserAgent() -> str:
+#     letters = string.ascii_lowercase
+#     length = 10
+#     return f"User agent by {str(uuid.uuid4())}-" + "".join(
+#         random.choice(letters) for _ in range(length)
+#     )
 
 
 # Get New Session

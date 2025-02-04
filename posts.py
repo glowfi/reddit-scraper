@@ -21,6 +21,7 @@ from dotenv import dotenv_values
 
 from subreddits import Subreddit, writeResult
 from users import User, generate_user_info, Trophies, fetchTrophies
+from agents import getUserAgent
 
 
 class AccessTokenResponse(TypedDict):
@@ -223,12 +224,12 @@ def unix_to_relative_time(unix_time):
 
 
 # Get Custom User agent string
-def getUserAgent() -> str:
-    letters = string.ascii_lowercase
-    length = 10
-    return f"User agent by {str(uuid.uuid4())}-" + "".join(
-        random.choice(letters) for _ in range(length)
-    )
+# def getUserAgent() -> str:
+#     letters = string.ascii_lowercase
+#     length = 10
+#     return f"User agent by {str(uuid.uuid4())}-" + "".join(
+#         random.choice(letters) for _ in range(length)
+#     )
 
 
 # Get New Session
@@ -844,6 +845,7 @@ def run():
 
         for post_result in post_results_per_subreddit:
             raw_post_json = post_result.get("posts", {})
+            print(post_result.get("subreddit"))
             posts = [*posts, *getPosts(raw_post_json, awards)]
 
         # Fetch comments from the subreddit_posts
