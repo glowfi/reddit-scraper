@@ -1,3 +1,6 @@
+#!/usr/bin/env bash
+
+find . | grep *__pycache__/ | xargs -I "{}" rm -rf "{}"
 rm -rf __pycache__
 rm -rf request_status.txt
 rm -rf api_requests.log

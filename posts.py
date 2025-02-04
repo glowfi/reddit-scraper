@@ -1,5 +1,4 @@
 import logging
-import string
 import random
 import uuid
 import json
@@ -15,13 +14,14 @@ import urllib.parse
 from urllib.parse import parse_qs
 import html
 
+import ua_generator
+from ua_generator.user_agent import UserAgent
 from colorama import Fore, Style
 from bs4 import BeautifulSoup
 from dotenv import dotenv_values
 
 from subreddits import Subreddit, writeResult
 from users import User, generate_user_info, Trophies, fetchTrophies
-from agents import getUserAgent
 
 
 class AccessTokenResponse(TypedDict):
@@ -223,13 +223,23 @@ def unix_to_relative_time(unix_time):
             return "just now"
 
 
-# Get Custom User agent string
-# def getUserAgent() -> str:
-#     letters = string.ascii_lowercase
-#     length = 10
-#     return f"User agent by {str(uuid.uuid4())}-" + "".join(
-#         random.choice(letters) for _ in range(length)
-#     )
+# Get random user agent
+def getUserAgent() -> UserAgent:
+    return ua_generator.generate(
+        device=("desktop", "mobile"),
+        platform=("windows", "macos", "ios", "linux", "android"),
+        browser=("chrome", "edge", "firefox", "safari"),
+    )
+
+
+# Get headers from user agent
+def getHeaders(ua: UserAgent, token: str) -> dict[str, str]:
+    if not token:
+        return ua.headers.get()
+    return {
+        **ua.headers.get(),
+        "Authorization": f"bearer {token}",
+    }
 
 
 # Get New Session
@@ -247,7 +257,7 @@ def getSession() -> requests.Session:
 
 
 # Get Oauth token
-def getToken(params: dict[str, str], headers: dict[str, str], timeout: int) -> str:
+def getToken(params: dict[str, str], timeout: int) -> str:
     if not client_id or not client_secret or not username or not password:
         return ""
     session = getSession()
@@ -255,7 +265,7 @@ def getToken(params: dict[str, str], headers: dict[str, str], timeout: int) -> s
     resp: AccessTokenResponse = session.post(
         "https://www.reddit.com/api/v1/access_token",
         data=params,
-        headers=headers,
+        headers=getHeaders(getUserAgent(), ""),
         timeout=timeout,
     ).json()
     return resp["access_token"]
@@ -298,19 +308,13 @@ def fetchPostsBySubreddt(
         if token:
             response = session.get(
                 f"https://oauth.reddit.com/{subreddit}/{filter}.json",
-                headers={
-                    "User-Agent": getUserAgent(),
-                    "Authorization": f"bearer {token}",
-                },
+                headers=getHeaders(getUserAgent(), token),
                 params={"limit": limit, "show": "all", "sr_detail": True},
             )
         else:
             response = session.get(
                 f"https://www.reddit.com/{subreddit}/{filter}.json",
-                headers={
-                    "User-Agent": getUserAgent(),
-                    "Authorization": f"bearer {token}",
-                },
+                headers=getHeaders(getUserAgent(), token),
                 params={"limit": limit, "show": "all", "sr_detail": True},
             )
         response.raise_for_status()
@@ -362,10 +366,7 @@ def fetchPostArticleByPostID(
         if token:
             response = session.get(
                 f"https://oauth.reddit.com/{subreddit}/comments/{postID}.json",
-                headers={
-                    "User-Agent": getUserAgent(),
-                    "Authorization": f"bearer {token}",
-                },
+                headers=getHeaders(getUserAgent(), token),
                 params={
                     "showmore": True,
                     "showmedia": True,
@@ -376,10 +377,7 @@ def fetchPostArticleByPostID(
         else:
             response = session.get(
                 f"https://www.reddit.com/{subreddit}/comments/{postID}.json",
-                headers={
-                    "User-Agent": getUserAgent(),
-                    "Authorization": f"bearer {token}",
-                },
+                headers=getHeaders(getUserAgent(), token),
                 params={
                     "showmore": True,
                     "showmedia": True,
@@ -806,8 +804,7 @@ def run():
         "username": username,
         "password": password,
     }
-    headers = {"User-Agent": getUserAgent()}
-    acc_token = getToken(params, headers, 10)
+    acc_token = getToken(params, 10)
 
     # Get all awards
     awards: list[Awards] = fetchAwards()

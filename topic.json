@@ -1,8 +1,5 @@
 {
-    "Anime & Cosplay": [
-        "Anime & Manga",
-        "Cosplay"
-    ],
+    "Anime & Cosplay": ["Anime & Manga", "Cosplay"],
     "Art": [
         "Performing Arts",
         "Architecture",
@@ -28,10 +25,7 @@
         "Other Hobbies",
         "Toys"
     ],
-    "Education & Career": [
-        "Studying & Education",
-        "Career"
-    ],
+    "Education & Career": ["Studying & Education", "Career"],
     "Fashion & Beauty": [
         "Nails",
         "Hair",
@@ -83,12 +77,7 @@
         "Sustainable Living",
         "Home Improvement"
     ],
-    "Humanities & Law": [
-        "Ethics & Philosophy",
-        "Law",
-        "History",
-        "Languages"
-    ],
+    "Humanities & Law": ["Ethics & Philosophy", "Law", "History", "Languages"],
     "Identity & Relationships": [
         "Relationships",
         "Gender & Sexual Orientation",
@@ -148,11 +137,7 @@
         "Hunting",
         "Nature & Wildlife"
     ],
-    "News & Politics": [
-        "News",
-        "Activism",
-        "Politics"
-    ],
+    "News & Politics": ["News", "Activism", "Politics"],
     "Places & Travel": [
         "Places in Africa",
         "Places in Europe",
@@ -171,15 +156,8 @@
         "Streamers",
         "Tarot & Astrology"
     ],
-    "Q&As & Stories": [
-        "Stories & Confessions",
-        "Q&As"
-    ],
-    "Reading & Writing": [
-        "Comics",
-        "Books & Literature",
-        "Writing"
-    ],
+    "Q&As & Stories": ["Stories & Confessions", "Q&As"],
+    "Reading & Writing": ["Comics", "Books & Literature", "Writing"],
     "Sciences": [
         "Biological Sciences",
         "Engineering",
@@ -244,9 +222,7 @@
         "Fitness",
         "Weight Loss"
     ],
-    "Adult Content": [
-        "Adult Content"
-    ],
+    "Adult Content": ["Adult Content"],
     "Mature Topics": [
         "No Topic/ Other Topic",
         "Guns & Weapons",

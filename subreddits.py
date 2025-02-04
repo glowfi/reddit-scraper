@@ -1,10 +1,7 @@
 import sys
 import traceback
 import logging
-import random
-import uuid
 import json
-import string
 import datetime
 from collections import defaultdict
 from typing import TypedDict, Any
@@ -18,12 +15,13 @@ import urllib.parse
 from urllib.parse import parse_qs
 import html
 
+import ua_generator
+from ua_generator.user_agent import UserAgent
 from colorama import Fore, Style
 from numerize import numerize
 from dotenv import dotenv_values
 
 from users import User, generate_user_info, Trophies, fetchTrophies
-from agents import getUserAgent
 
 
 class AccessTokenResponse(TypedDict):
@@ -136,7 +134,7 @@ TOTAL_SUBREDDITS_PER_TOPICS = int(TOTAL_SUBREDDITS_PER_TOPICS)
 
 # Get Human Readable Date [Unix epoch to human readable data]
 def unix_epoch_to_human_readable(unixtime):
-    dt = datetime.datetime.utcfromtimestamp(unixtime)
+    dt = datetime.datetime.fromtimestamp(unixtime)
 
     # Get month as words using list indexing
     month_words = [
@@ -164,13 +162,23 @@ def unix_epoch_to_human_readable(unixtime):
     return f"{day} {month} {year}"
 
 
-# Get Custom User agent string
-# def getUserAgent() -> str:
-#     letters = string.ascii_lowercase
-#     length = 10
-#     return f"User agent by {str(uuid.uuid4())}-" + "".join(
-#         random.choice(letters) for _ in range(length)
-#     )
+# Get random user agent
+def getUserAgent() -> UserAgent:
+    return ua_generator.generate(
+        device=("desktop", "mobile"),
+        platform=("windows", "macos", "ios", "linux", "android"),
+        browser=("chrome", "edge", "firefox", "safari"),
+    )
+
+
+# Get headers from user agent
+def getHeaders(ua: UserAgent, token: str) -> dict[str, str]:
+    if not token:
+        return ua.headers.get()
+    return {
+        **ua.headers.get(),
+        "Authorization": f"bearer {token}",
+    }
 
 
 # Get New Session
@@ -188,7 +196,7 @@ def getSession() -> requests.Session:
 
 
 # Get Oauth token
-def getToken(params: dict[str, str], headers: dict[str, str], timeout: int) -> str:
+def getToken(params: dict[str, str], timeout: int) -> str:
     if not client_id or not client_secret or not username or not password:
         return ""
     session = getSession()
@@ -196,7 +204,7 @@ def getToken(params: dict[str, str], headers: dict[str, str], timeout: int) -> s
     resp: AccessTokenResponse = session.post(
         "https://www.reddit.com/api/v1/access_token",
         data=params,
-        headers=headers,
+        headers=getHeaders(getUserAgent(), ""),
         timeout=timeout,
     ).json()
     return resp["access_token"]
@@ -231,10 +239,7 @@ def fetchSubredditModerators(subreddit: str, token: str) -> SubredditModeratorsR
     try:
         response = session.get(
             f"https://oauth.reddit.com/r/{subreddit}/about/moderators.json",
-            headers={
-                "User-Agent": getUserAgent(),
-                "Authorization": f"bearer {token}",
-            },
+            headers=getHeaders(getUserAgent(), token),
         )
         response.raise_for_status()
 
@@ -309,10 +314,7 @@ def fetchSubredditFlairsUser(subreddit: str, token: str) -> SubredditFlairsResul
     try:
         response = session.get(
             f"https://oauth.reddit.com/r/{subreddit}/api/user_flair_v2",
-            headers={
-                "User-Agent": getUserAgent(),
-                "Authorization": f"bearer {token}",
-            },
+            headers=getHeaders(getUserAgent(), token),
         )
         response.raise_for_status()
 
@@ -359,10 +361,7 @@ def fetchSubredditFlairs(subreddit: str, token: str) -> SubredditFlairsResult:
     try:
         response = session.get(
             f"https://oauth.reddit.com/r/{subreddit}/api/link_flair_v2",
-            headers={
-                "User-Agent": getUserAgent(),
-                "Authorization": f"bearer {token}",
-            },
+            headers=getHeaders(getUserAgent(), token),
         )
         response.raise_for_status()
 
@@ -410,17 +409,12 @@ def fetchSubredditRules(subreddit: str, token: str) -> SubredditRulesResult:
         if token:
             response = session.get(
                 f"https://oauth.reddit.com/r/{subreddit}/about/rules.json",
-                headers={
-                    "User-Agent": getUserAgent(),
-                    "Authorization": f"bearer {token}",
-                },
+                headers=getHeaders(getUserAgent(), token),
             )
         else:
             response = session.get(
                 f"https://reddit.com/r/{subreddit}/about/rules.json",
-                headers={
-                    "User-Agent": getUserAgent(),
-                },
+                headers=getHeaders(getUserAgent(), token),
             )
         response.raise_for_status()
 
@@ -472,10 +466,7 @@ def fetchSubredditsByTopic(
         if token:
             response = session.get(
                 "https://oauth.reddit.com/search.json",
-                headers={
-                    "User-Agent": getUserAgent(),
-                    "Authorization": f"bearer {token}",
-                },
+                headers=getHeaders(getUserAgent(), token),
                 params={
                     "q": topic,
                     "sort": filter,
@@ -486,9 +477,7 @@ def fetchSubredditsByTopic(
         else:
             response = session.get(
                 "https://reddit.com/search.json",
-                headers={
-                    "User-Agent": getUserAgent(),
-                },
+                headers=getHeaders(getUserAgent(), token),
                 params={
                     "q": topic,
                     "sort": filter,
@@ -634,8 +623,7 @@ def run():
         "username": username,
         "password": password,
     }
-    headers = {"User-Agent": getUserAgent()}
-    acc_token = getToken(params, headers, 10)
+    acc_token = getToken(params, 10)
 
     if not acc_token:
         sys.exit(1)

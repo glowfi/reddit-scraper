@@ -162,7 +162,7 @@ def epoch_age(epoch_time):
 # Timestamp to date format
 def getDate(timestamp):
     # Convert Unix epoch time to datetime object
-    dt = datetime.datetime.utcfromtimestamp(timestamp)
+    dt = datetime.datetime.fromtimestamp(timestamp)
 
     # Subtract 8 hours from the original timezone to get the local timezone
     dt = dt - timedelta(hours=8)

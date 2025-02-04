@@ -37,8 +37,8 @@ created after scraping is completed.
 -   **subreddits.py (Scrapes Subreddits)**
 -   **posts.py (Scrapes Posts)**
 -   **users.py (Scrapes Users)**
--   **split.py (To make it easier to import JSON data into databases like MongoDB, this will split the data into smaller chunks of json files prefixed by users_p1,users_p2,... so on)**
--   **import_data_to_mongodb.sh (Imports json data to MongoDB)**
+-   **utils/split.py (To make it easier to import JSON data into databases like MongoDB, this will split the data into smaller chunks of json files prefixed by users_p1,users_p2,... so on)**
+-   **utils/import_data_to_mongodb.sh (Imports json data to MongoDB)**
 -   **run.py (Runs all the above script one by one)**
 
 ## Running the Script
