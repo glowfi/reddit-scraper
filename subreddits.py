@@ -74,6 +74,11 @@ class Subreddit(TypedDict, total=False):
     spoilers_enabled: bool
 
 
+class OnDemandSubreddit(TypedDict):
+    name: str
+    topic: str
+
+
 class ResultState(TypedDict):
     status_code: int
     success: bool
@@ -583,9 +588,11 @@ def handleURL(encodedURL: str):
 
 
 def buildSubreddit(
-    raw_json: Any, topic: str, total_subreddits_per_topics: int
+    raw_json: Any, topic: str, total_subreddits_per_topics: int, isSingleSubreddit: bool
 ) -> list[Subreddit]:
     children = raw_json.get("data", {}).get("children", {})
+    if isSingleSubreddit:
+        children = raw_json.get("data", {})
     c = 0
     subreddits: list[Subreddit] = []
     seen_subreddit: set[str] = set()
@@ -681,6 +688,9 @@ def run():
     if not acc_token:
         sys.exit(1)
 
+    # on demand subreddits
+    on_demand_subreddits: list[OnDemandSubreddit] = []
+
     # Get all topics
     TOPICS = []
     with open("./topic.json", "r") as fp:
@@ -703,12 +713,29 @@ def run():
     results: list[SubredditResult] = []
     subreddits: dict[str, list[Subreddit]] = defaultdict(list[Subreddit])
 
+    for on_demand_subreddit in on_demand_subreddits:
+        try:
+            subreddit_name = on_demand_subreddit.get("name", "")
+            subreddit_topic = on_demand_subreddit.get("topic", "")
+            if not subreddit_name or not subreddit_topic:
+                continue
+
+            res = fetchSubredditsByName(subreddit_name, acc_token)
+            results.append(res)
+            subreddits[subreddit_topic] = buildSubreddit(
+                res["subreddits"], subreddit_topic, TOTAL_SUBREDDITS_PER_TOPICS, True
+            )
+        except Exception as err:
+            print(traceback.print_exc())
+            print("Moving to next topic ...", err)
+            sys.exit(1)
+
     for topic in TOPICS:
         try:
             res = fetchSubredditsByTopic(SUBREDDIT_SORT_FILTER, 100, topic, acc_token)
             results.append(res)
             subreddits[topic] = buildSubreddit(
-                res["subreddits"], topic, TOTAL_SUBREDDITS_PER_TOPICS
+                res["subreddits"], topic, TOTAL_SUBREDDITS_PER_TOPICS, False
             )
         except Exception as err:
             print(traceback.print_exc())
