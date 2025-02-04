@@ -811,9 +811,13 @@ def run():
 
     # Get all awards
     awards: list[Awards] = fetchAwards()
+    with open("awards.json", "w") as fp:
+        json.dump(awards, fp)
 
     # Get all trophies
     trophies: list[Trophies] = fetchTrophies()
+    with open("trophies.json", "w") as fp:
+        json.dump(trophies, fp)
 
     data: dict[str, list[Subreddit]] = {}
     with open("./subreddits.json", "r") as fp:
