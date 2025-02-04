@@ -479,10 +479,10 @@ def fetchSubredditsByName(subreddit: str, token: str) -> SubredditResult:
 
         response_json = response.json()
         print(
-            f"{Fore.GREEN}Success Status Code:{response.status_code} Topic Name:{subreddit}{Style.RESET_ALL}"
+            f"{Fore.GREEN}Success got subreddit info by name Status Code:{response.status_code} Subreddit Name:{subreddit}{Style.RESET_ALL}"
         )
         logging.info(
-            f"Success Status Code:{response.status_code} Topic Name:{subreddit}"
+            f"Success Status got subreddit info by name Code:{response.status_code} Subreddit Name:{subreddit}"
         )
         return {
             "subreddits": response_json,
@@ -498,9 +498,11 @@ def fetchSubredditsByName(subreddit: str, token: str) -> SubredditResult:
         if type(err) is HTTPError:
             code = err.response.status_code
         print(
-            f"{Fore.RED}Fail Status Code:{code} Topic name:{subreddit}{Style.RESET_ALL}  Error : {err}"
+            f"{Fore.RED}Failed to get subreddit info by name Status Code:{code} Subreddit name:{subreddit}{Style.RESET_ALL}  Error : {err}"
         )
-        logging.error(f"Fail Status Code:{code} Topic name:{subreddit}  Error : {err}")
+        logging.error(
+            f"Failed to get subreddit info by name Status Code:{code} Subreddit name:{subreddit}  Error : {err}"
+        )
         return {
             "subreddits": None,
             "topic": subreddit,
@@ -546,9 +548,11 @@ def fetchSubredditsByTopic(
 
         response_json = response.json()
         print(
-            f"{Fore.GREEN}Success Status Code:{response.status_code} Topic Name:{topic}{Style.RESET_ALL}"
+            f"{Fore.GREEN}Success got subreddit(s) info by topic Status Code:{response.status_code} Topic Name:{topic}{Style.RESET_ALL}"
         )
-        logging.info(f"Success Status Code:{response.status_code} Topic Name:{topic}")
+        logging.info(
+            f"Success got subreddit(s) info by topic Status Code:{response.status_code} Topic Name:{topic}"
+        )
         return {
             "subreddits": response_json,
             "topic": topic,
@@ -563,9 +567,11 @@ def fetchSubredditsByTopic(
         if type(err) is HTTPError:
             code = err.response.status_code
         print(
-            f"{Fore.RED}Fail Status Code:{code} Topic name:{topic}{Style.RESET_ALL}  Error : {err}"
+            f"{Fore.RED}Failed to get subreddit(s) info by topic Status Code:{code} Topic name:{topic}{Style.RESET_ALL}  Error : {err}"
         )
-        logging.error(f"Fail Status Code:{code} Topic name:{topic}  Error : {err}")
+        logging.error(
+            f"Failed to to get subreddit(s) info by topic Status Code:{code} Topic name:{topic}  Error : {err}"
+        )
         return {
             "subreddits": None,
             "topic": topic,
