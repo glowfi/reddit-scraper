@@ -75,8 +75,9 @@ class Subreddit(TypedDict, total=False):
 
 
 class OnDemandSubreddit(TypedDict):
-    name: str
+    title: str
     topic: str
+    posts_count: int
 
 
 class ResultState(TypedDict):
@@ -690,6 +691,12 @@ def run():
 
     # on demand subreddits
     on_demand_subreddits: list[OnDemandSubreddit] = []
+    try:
+        with open("./ondemand.json", "r") as fp:
+            on_demand_subreddits: list[OnDemandSubreddit] = json.load(fp)
+    except Exception:
+        print(traceback.print_exc())
+        sys.exit(1)
 
     # Get all topics
     TOPICS = []
@@ -715,19 +722,18 @@ def run():
 
     for on_demand_subreddit in on_demand_subreddits:
         try:
-            subreddit_name = on_demand_subreddit.get("name", "")
+            subreddit_title = on_demand_subreddit.get("title", "")
             subreddit_topic = on_demand_subreddit.get("topic", "")
-            if not subreddit_name or not subreddit_topic:
+            if not subreddit_title or not subreddit_topic:
                 continue
 
-            res = fetchSubredditsByName(subreddit_name, acc_token)
+            res = fetchSubredditsByName(subreddit_title, acc_token)
             results.append(res)
             subreddits[subreddit_topic] = buildSubreddit(
                 res["subreddits"], subreddit_topic, TOTAL_SUBREDDITS_PER_TOPICS, True
             )
-        except Exception as err:
+        except Exception:
             print(traceback.print_exc())
-            print("Moving to next topic ...", err)
             sys.exit(1)
 
     for topic in TOPICS:
@@ -739,7 +745,7 @@ def run():
             )
         except Exception as err:
             print(traceback.print_exc())
-            print("Moving to next topic ...", err)
+            print(err)
             sys.exit(1)
 
     with open("request_status.txt", "a") as f:

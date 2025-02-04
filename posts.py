@@ -1,3 +1,5 @@
+import sys
+import traceback
 import logging
 import random
 import uuid
@@ -167,6 +169,12 @@ class UserDetail(TypedDict):
     name: str
     subreddit: str
     subreddit_id: str
+
+
+class OnDemandSubreddit(TypedDict):
+    title: str
+    topic: str
+    posts_count: int
 
 
 # Set up logging
@@ -827,8 +835,29 @@ def run():
         # Final Posts
         posts: list[Post] = []
 
-        # Get new posts of subreddit
+        # on demand subreddits
+        on_demand_subreddits: list[OnDemandSubreddit] = []
+        try:
+            with open("./ondemand.json", "r") as fp:
+                on_demand_subreddits: list[OnDemandSubreddit] = json.load(fp)
+        except Exception:
+            print(traceback.print_exc())
+            sys.exit(1)
+
         post_results_per_subreddit: list[PostResult] = []
+
+        # Get new posts of on-demand subreddit
+        for on_demand_subreddit in on_demand_subreddits:
+            title = on_demand_subreddit.get("title", "")
+            posts_count = on_demand_subreddit.get("posts_count", 0)
+            if not title or not posts_count:
+                continue
+            posts_result: PostResult = fetchPostsBySubreddt(
+                POSTS_SORT_FILTER, posts_count, title, acc_token
+            )
+            post_results_per_subreddit.append(posts_result)
+
+        # Get new posts of subreddit
         for topic in data:
             for _, subreddit in enumerate(data[topic]):
                 title = subreddit.get("title", "")
