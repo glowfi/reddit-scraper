@@ -589,82 +589,142 @@ def handleURL(encodedURL: str):
 
 
 def buildSubreddit(
-    raw_json: Any, topic: str, total_subreddits_per_topics: int, isSingleSubreddit: bool
+    raw_json: Any,
+    topic: str,
+    total_subreddits_per_topics: int,
+    isSingleSubreddit: bool,
+    seen_subreddit: set[str],
 ) -> list[Subreddit]:
-    children = raw_json.get("data", {}).get("children", {})
-    if isSingleSubreddit:
-        children = raw_json.get("data", {})
     c = 0
     subreddits: list[Subreddit] = []
-    seen_subreddit: set[str] = set()
 
-    for child in children:
-        if c == total_subreddits_per_topics:
-            break
-
-        subreddit_title = child.get("data", {}).get("subreddit_name_prefixed", "")
-        if subreddit_title in seen_subreddit:
-            continue
-        seen_subreddit.add(subreddit_title)
-
-        subreddit = child.get("data", {}).get("sr_detail")
+    if isSingleSubreddit:
+        subreddit = raw_json.get("data", {})
+        subreddit_title = subreddit.get("display_name_prefixed", "")
         if (
-            subreddit["subreddit_type"] == "private"
-            or child.get("data", {}).get("subreddit_name_prefixed", "").find("u/") != -1
+            subreddit_title in seen_subreddit
+            or subreddit.get("subreddit_type", "") == "private"
+            or subreddit_title.find("u/") != -1
         ):
-            continue
-        else:
-            new_subreddit: Subreddit = {}
+            return subreddits
 
-            # Basic info
-            new_subreddit["id"] = subreddit.get("name", "").replace("t5_", "")
-            new_subreddit["title"] = child.get("data", {}).get(
-                "subreddit_name_prefixed", ""
-            )
-            new_subreddit["public_description"] = subreddit.get(
-                "public_description", ""
-            )
-            new_subreddit["community_icon"] = handleURL(
-                subreddit.get("community_icon", ""),
-            )
-            new_subreddit["banner_background_image"] = handleURL(
-                subreddit.get("banner_img", ""),
-            ) or handleURL(
-                subreddit.get("banner_background_image", ""),
-            )
-            new_subreddit["category"] = topic
+        seen_subreddit.add(subreddit_title)
+        new_subreddit: Subreddit = {}
 
-            # Colors
-            new_subreddit["key_color"] = subreddit.get("key_color", "")
-            new_subreddit["primary_color"] = subreddit.get("primary_color", "")
-            new_subreddit["banner_background_color"] = subreddit.get(
-                "banner_background_color", "#000000"
-            )
+        # Basic info
+        new_subreddit["id"] = subreddit.get("name", "").replace("t5_", "")
+        new_subreddit["title"] = subreddit_title
+        new_subreddit["public_description"] = subreddit.get("public_description", "")
+        new_subreddit["community_icon"] = handleURL(
+            subreddit.get("community_icon", ""),
+        )
+        new_subreddit["banner_background_image"] = handleURL(
+            subreddit.get("banner_img", ""),
+        ) or handleURL(
+            subreddit.get("banner_background_image", ""),
+        )
+        new_subreddit["category"] = topic
 
-            # Members,CreatedDate
-            new_subreddit["created_utc"] = subreddit.get("created_utc", 0)
-            new_subreddit["created_human"] = (
-                unix_epoch_to_human_readable(int(new_subreddit["created_utc"]))
-                if new_subreddit["created_utc"]
-                else ""
-            )
-            new_subreddit["subscribers"] = subreddit.get("subscribers", 0)
-            new_subreddit["subscribers_human"] = (
-                numerize.numerize(int(new_subreddit["subscribers"]))
-                if new_subreddit["subscribers"]
-                else ""
-            )
-            new_subreddit["members"] = []
+        # Colors
+        new_subreddit["key_color"] = subreddit.get("key_color", "")
+        new_subreddit["primary_color"] = subreddit.get("primary_color", "")
+        new_subreddit["banner_background_color"] = subreddit.get(
+            "banner_background_color", "#000000"
+        )
 
-            # Spolier , NSFW
-            new_subreddit["over18"] = subreddit.get("over18", False)
-            new_subreddit["spoilers_enabled"] = subreddit.get("spoilers_enabled", False)
+        # Members,CreatedDate
+        new_subreddit["created_utc"] = subreddit.get("created_utc", 0)
+        new_subreddit["created_human"] = (
+            unix_epoch_to_human_readable(int(new_subreddit["created_utc"]))
+            if new_subreddit["created_utc"]
+            else ""
+        )
+        new_subreddit["subscribers"] = subreddit.get("subscribers", 0)
+        new_subreddit["subscribers_human"] = (
+            numerize.numerize(int(new_subreddit["subscribers"]))
+            if new_subreddit["subscribers"]
+            else ""
+        )
+        new_subreddit["members"] = []
 
-            subreddits.append(new_subreddit)
+        # Spolier , NSFW
+        new_subreddit["over18"] = subreddit.get("over18", False)
+        new_subreddit["spoilers_enabled"] = subreddit.get("spoilers_enabled", False)
 
-            c += 1
+        subreddits.append(new_subreddit)
+        return subreddits
+    else:
+        subreddit = raw_json.get("data", {}).get("children", {})
+        for child in subreddit:
+            if c == total_subreddits_per_topics:
+                break
 
-    return subreddits
+            subreddit_title = child.get("data", {}).get("subreddit_name_prefixed", "")
+            if subreddit_title in seen_subreddit:
+                continue
+            seen_subreddit.add(subreddit_title)
+
+            subreddit = child.get("data", {}).get("sr_detail")
+            if (
+                subreddit.get("subreddit_type", "") == "private"
+                or child.get("data", {}).get("subreddit_name_prefixed", "").find("u/")
+                != -1
+            ):
+                continue
+            else:
+                new_subreddit: Subreddit = {}
+
+                # Basic info
+                new_subreddit["id"] = subreddit.get("name", "").replace("t5_", "")
+                new_subreddit["title"] = child.get("data", {}).get(
+                    "subreddit_name_prefixed", ""
+                )
+                new_subreddit["public_description"] = subreddit.get(
+                    "public_description", ""
+                )
+                new_subreddit["community_icon"] = handleURL(
+                    subreddit.get("community_icon", ""),
+                )
+                new_subreddit["banner_background_image"] = handleURL(
+                    subreddit.get("banner_img", ""),
+                ) or handleURL(
+                    subreddit.get("banner_background_image", ""),
+                )
+                new_subreddit["category"] = topic
+
+                # Colors
+                new_subreddit["key_color"] = subreddit.get("key_color", "")
+                new_subreddit["primary_color"] = subreddit.get("primary_color", "")
+                new_subreddit["banner_background_color"] = subreddit.get(
+                    "banner_background_color", "#000000"
+                )
+
+                # Members,CreatedDate
+                new_subreddit["created_utc"] = subreddit.get("created_utc", 0)
+                new_subreddit["created_human"] = (
+                    unix_epoch_to_human_readable(int(new_subreddit["created_utc"]))
+                    if new_subreddit["created_utc"]
+                    else ""
+                )
+                new_subreddit["subscribers"] = subreddit.get("subscribers", 0)
+                new_subreddit["subscribers_human"] = (
+                    numerize.numerize(int(new_subreddit["subscribers"]))
+                    if new_subreddit["subscribers"]
+                    else ""
+                )
+                new_subreddit["members"] = []
+
+                # Spolier , NSFW
+                new_subreddit["over18"] = subreddit.get("over18", False)
+                new_subreddit["spoilers_enabled"] = subreddit.get(
+                    "spoilers_enabled", False
+                )
+
+                subreddits.append(new_subreddit)
+
+                c += 1
+
+        return subreddits
 
 
 def writeResult(
@@ -719,6 +779,7 @@ def run():
     # Get subreddits
     results: list[SubredditResult] = []
     subreddits: dict[str, list[Subreddit]] = defaultdict(list[Subreddit])
+    seen_subreddits: set[str] = set()
 
     for on_demand_subreddit in on_demand_subreddits:
         try:
@@ -730,7 +791,11 @@ def run():
             res = fetchSubredditsByName(subreddit_title, acc_token)
             results.append(res)
             subreddits[subreddit_topic] = buildSubreddit(
-                res["subreddits"], subreddit_topic, TOTAL_SUBREDDITS_PER_TOPICS, True
+                res["subreddits"],
+                subreddit_topic,
+                TOTAL_SUBREDDITS_PER_TOPICS,
+                True,
+                seen_subreddits,
             )
         except Exception:
             print(traceback.print_exc())
@@ -741,7 +806,11 @@ def run():
             res = fetchSubredditsByTopic(SUBREDDIT_SORT_FILTER, 100, topic, acc_token)
             results.append(res)
             subreddits[topic] = buildSubreddit(
-                res["subreddits"], topic, TOTAL_SUBREDDITS_PER_TOPICS, False
+                res["subreddits"],
+                topic,
+                TOTAL_SUBREDDITS_PER_TOPICS,
+                False,
+                seen_subreddits,
             )
         except Exception as err:
             print(traceback.print_exc())
