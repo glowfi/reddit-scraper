@@ -455,6 +455,57 @@ def fetchSubredditRules(subreddit: str, token: str) -> SubredditRulesResult:
         }
 
 
+def fetchSubredditsByName(subreddit: str, token: str) -> SubredditResult:
+    session = getSession()
+
+    try:
+        if token:
+            response = session.get(
+                f"https://oauth.reddit.com/{subreddit}/about.json",
+                headers=getHeaders(getUserAgent(), token),
+            )
+        else:
+            response = session.get(
+                f"https://oauth.reddit.com/{subreddit}/about.json",
+                headers=getHeaders(getUserAgent(), token),
+            )
+        response.raise_for_status()
+
+        response_json = response.json()
+        print(
+            f"{Fore.GREEN}Success Status Code:{response.status_code} Topic Name:{subreddit}{Style.RESET_ALL}"
+        )
+        logging.info(
+            f"Success Status Code:{response.status_code} Topic Name:{subreddit}"
+        )
+        return {
+            "subreddits": response_json,
+            "topic": subreddit,
+            "result_state": {
+                "error": "",
+                "success": True,
+                "status_code": response.status_code,
+            },
+        }
+    except Exception as err:
+        code = -1
+        if type(err) is HTTPError:
+            code = err.response.status_code
+        print(
+            f"{Fore.RED}Fail Status Code:{code} Topic name:{subreddit}{Style.RESET_ALL}  Error : {err}"
+        )
+        logging.error(f"Fail Status Code:{code} Topic name:{subreddit}  Error : {err}")
+        return {
+            "subreddits": None,
+            "topic": subreddit,
+            "result_state": {
+                "error": str(err),
+                "success": False,
+                "status_code": code,
+            },
+        }
+
+
 def fetchSubredditsByTopic(
     filter: str, limit: int, topic: str, token: str
 ) -> SubredditResult:
@@ -570,6 +621,8 @@ def buildSubreddit(
             )
             new_subreddit["banner_background_image"] = handleURL(
                 subreddit.get("banner_img", ""),
+            ) or handleURL(
+                subreddit.get("banner_background_image", ""),
             )
             new_subreddit["category"] = topic
 
