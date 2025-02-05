@@ -759,10 +759,17 @@ def getPosts(raw_json: Any, awards: list[Awards]) -> list[Post]:
 
         txt, txtHTML = "", ""
         if "crosspost_parent_list" in post_detail:
-            txt = post_detail.get("crosspost_parent_list", [])[0].get("selftext", "")
-            txtHTML = post_detail.get("crosspost_parent_list", [])[0].get(
-                "selftext_html", ""
-            )
+            txt = post_detail.get("crosspost_parent_list", [])
+            if len(txt) > 0:
+                txt = txt[0].get("selftext", "")
+            else:
+                txt = ""
+
+            txtHTML = post_detail.get("crosspost_parent_list", [])
+            if len(txtHTML) > 0:
+                txtHTML = txtHTML[0].get("selftext_html", "")
+            else:
+                txtHTML = ""
 
         new_post: Post = {
             "id": post_detail.get("id", ""),
@@ -855,7 +862,8 @@ def run():
             posts_result: PostResult = fetchPostsBySubreddt(
                 POSTS_SORT_FILTER, posts_count, title, acc_token
             )
-            post_results_per_subreddit.append(posts_result)
+            if posts_result.get("posts", {}):
+                post_results_per_subreddit.append(posts_result)
 
         # Get new posts of subreddit
         for topic in data:
@@ -864,7 +872,8 @@ def run():
                 posts_result: PostResult = fetchPostsBySubreddt(
                     POSTS_SORT_FILTER, POSTS_PER_SUBREDDIT, title, acc_token
                 )
-                post_results_per_subreddit.append(posts_result)
+                if posts_result.get("posts", {}):
+                    post_results_per_subreddit.append(posts_result)
 
         with open("request_status.txt", "a") as f:
             for result in post_results_per_subreddit:
