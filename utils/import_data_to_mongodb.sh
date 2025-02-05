@@ -16,9 +16,9 @@
 # mongoimport -d socialmedia -c users --file ./user_p1.json --jsonArray
 # mongoimport -d socialmedia -c users --file ./user_p2.json --jsonArray
 
-# mongoimport -d socialmedia -c users --file ./subreddits.json --jsonArray
+# mongoimport -d socialmedia -c subreddits --file ./subreddits.json --jsonArray
 # mongoimport -d socialmedia -c users --file ./users.json --jsonArray
-# mongoimport -d socialmedia -c users --file ./posts.json --jsonArray
-# mongoimport -d socialmedia -c users --file ./awards.json --jsonArray
-# mongoimport -d socialmedia -c users --file ./trophies.json --jsonArray
-# mongoimport -d socialmedia -c users --file ./topic.json --jsonArray
+# mongoimport -d socialmedia -c posts --file ./posts.json --jsonArray
+# mongoimport -d socialmedia -c awards --file ./awards.json --jsonArray
+# mongoimport -d socialmedia -c trophies --file ./trophies.json --jsonArray
+# mongoimport -d socialmedia -c topics --file ./topic.json --jsonArray
