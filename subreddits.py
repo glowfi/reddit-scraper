@@ -796,13 +796,16 @@ def run():
 
             res = fetchSubredditsByName(subreddit_title, acc_token)
             results.append(res)
-            subreddits[subreddit_topic] = buildSubreddit(
+            subreddit = buildSubreddit(
                 res["subreddits"],
                 subreddit_topic,
                 TOTAL_SUBREDDITS_PER_TOPICS,
                 True,
                 seen_subreddits,
             )
+            if len(subreddit) > 0:
+                subreddits[subreddit_topic].append(subreddit[0])
+                print(subreddits[subreddit_topic])
         except Exception:
             print(traceback.print_exc())
             sys.exit(1)
