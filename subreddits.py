@@ -770,14 +770,9 @@ def run():
         data: dict[str, list[str]] = json.load(fp)
         final: list[str] = []
 
-        if not data:
-            raise Exception("no topics found")
-
         for topics in data.values():
             final += topics
         TOPICS = sorted(final)
-    if not TOPICS:
-        raise Exception("no topics found!")
 
     # Get all trophies
     trophies: list[Trophies] = fetchTrophies()
@@ -805,7 +800,6 @@ def run():
             )
             if len(subreddit) > 0:
                 subreddits[subreddit_topic].append(subreddit[0])
-                print(subreddits[subreddit_topic])
         except Exception:
             print(traceback.print_exc())
             sys.exit(1)

@@ -203,32 +203,34 @@ if not POSTS_SORT_FILTER or not POSTS_PER_SUBREDDIT:
 POSTS_PER_SUBREDDIT = int(POSTS_PER_SUBREDDIT)
 
 
-def unix_to_relative_time(unix_time):
-    now = datetime.datetime.now()
-    diff = now - datetime.datetime.fromtimestamp(unix_time)
+# Get Human Readable Date [Unix epoch to human readable data]
+def unix_epoch_to_human_readable(unixtime):
+    dt = datetime.datetime.fromtimestamp(unixtime)
 
-    years = int(diff.days / 365)
-    days = abs(diff.days) % 365
-    hours = abs(diff.seconds) // 3600
-    minutes = abs(diff.seconds) // 60 % 60
-    seconds = abs(diff.seconds) % 60
+    # Get month as words using list indexing
+    month_words = [
+        "January",
+        "February",
+        "March",
+        "April",
+        "May",
+        "June",
+        "July",
+        "August",
+        "September",
+        "October",
+        "November",
+        "December",
+    ]
+    month_num = dt.month - 1
+    month = month_words[month_num]
 
-    if years > 0:
-        return f"{years} year{'' if years == 1 else 's'} ago"
-    elif days > 0:
-        plural = "day" if days == 1 else "days"
-        return f"{days} {plural} ago"
-    elif hours > 0:
-        plural = "hour" if hours == 1 else "hours"
-        return f"{hours} {plural} ago"
-    elif minutes > 0:
-        plural = "minute" if minutes == 1 else "minutes"
-        return f"{minutes} {plural} ago"
-    else:
-        if seconds > 0:
-            return "a moment ago"
-        else:
-            return "just now"
+    # Get day and year as words
+    day = str(dt.day).capitalize()
+    year = str(dt.year)
+
+    # Print the result
+    return f"{day} {month} {year}"
 
 
 # Get random user agent
@@ -787,7 +789,7 @@ def getPosts(raw_json: Any, awards: list[Awards]) -> list[Post]:
             "author_flair_text": post_detail.get("author_flair_text", ""),
             "created_utc": post_detail.get("created_utc", 0),
             "created_human": (
-                unix_to_relative_time(post_detail.get("created_utc", 0))
+                unix_epoch_to_human_readable(post_detail.get("created_utc", 0))
                 if post_detail.get("created_utc", 0)
                 else ""
             ),
