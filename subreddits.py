@@ -765,7 +765,7 @@ def run():
         sys.exit(1)
 
     # Get all topics
-    TOPICS = []
+    TOPICS = {}
     with open("./topic.json", "r") as fp:
         data: dict[str, list[str]] = json.load(fp)
         final: list[str] = []

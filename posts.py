@@ -833,6 +833,10 @@ def run():
     with open("trophies.json", "w") as fp:
         json.dump(trophies, fp)
 
+    topic_data = {}
+    with open("./topic.json", "r") as fp:
+        topic_data: dict[str, list[str]] = json.load(fp)
+
     data: dict[str, list[Subreddit]] = {}
     with open("./subreddits.json", "r") as fp:
         data = json.load(fp)
@@ -867,15 +871,16 @@ def run():
             if posts_result.get("posts", {}):
                 post_results_per_subreddit.append(posts_result)
 
-        # Get new posts of subreddit
-        for topic in data:
-            for _, subreddit in enumerate(data[topic]):
-                title = subreddit.get("title", "")
-                posts_result: PostResult = fetchPostsBySubreddt(
-                    POSTS_SORT_FILTER, POSTS_PER_SUBREDDIT, title, acc_token
-                )
-                if posts_result.get("posts", {}):
-                    post_results_per_subreddit.append(posts_result)
+        # Get new posts of topic based subreddit
+        if topic_data:
+            for topic in data:
+                for _, subreddit in enumerate(data[topic]):
+                    title = subreddit.get("title", "")
+                    posts_result: PostResult = fetchPostsBySubreddt(
+                        POSTS_SORT_FILTER, POSTS_PER_SUBREDDIT, title, acc_token
+                    )
+                    if posts_result.get("posts", {}):
+                        post_results_per_subreddit.append(posts_result)
 
         with open("request_status.txt", "a") as f:
             for result in post_results_per_subreddit:
