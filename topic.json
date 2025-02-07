@@ -1,6 +1,6 @@
 {
-    "Anime & Cosplay": ["Anime & Manga", "Cosplay"],
-    "Art": [
+    "🍣Anime & Cosplay": ["Anime & Manga", "Cosplay"],
+    "🎨Art": [
         "Performing Arts",
         "Architecture",
         "Design",
@@ -9,7 +9,7 @@
         "Digital Art",
         "Photography"
     ],
-    "Business & Finance": [
+    "💵Business & Finance": [
         "Personal Finance",
         "Crypto",
         "Economics",
@@ -19,14 +19,14 @@
         "Real Estate",
         "Stocks & Investing"
     ],
-    "Collectibles & Other Hobbies": [
+    "🧩Collectibles & Other Hobbies": [
         "Model Building",
         "Collectibles",
         "Other Hobbies",
         "Toys"
     ],
-    "Education & Career": ["Studying & Education", "Career"],
-    "Fashion & Beauty": [
+    "🏫Education & Career": ["Studying & Education", "Career"],
+    "🪞Fashion & Beauty": [
         "Nails",
         "Hair",
         "Makeup",
@@ -39,7 +39,7 @@
         "Watches",
         "Streetwear & Sneakers"
     ],
-    "Food & Drinks": [
+    "🍔Food & Drinks": [
         "Food & Recipes",
         "Non-Alcoholic Beverages",
         "Baking & Desserts",
@@ -48,7 +48,7 @@
         "Vegetarian & Vegan Food",
         "Alcoholic Beverages"
     ],
-    "Games": [
+    "🕹️Games": [
         "Other Games",
         "Gaming Consoles & Gear",
         "Esports",
@@ -62,14 +62,14 @@
         "Tabletop Games",
         "Mobile Games"
     ],
-    "Health": [
+    "🩹Health": [
         "Mental Health",
         "Trauma Support",
         "Addiction Support",
         "Pregnancy",
         "Medical Health"
     ],
-    "Home & Garden": [
+    "🏡Home & Garden": [
         "Home Inspiration & Decor",
         "House Plants",
         "DIY & Crafts",
@@ -77,8 +77,13 @@
         "Sustainable Living",
         "Home Improvement"
     ],
-    "Humanities & Law": ["Ethics & Philosophy", "Law", "History", "Languages"],
-    "Identity & Relationships": [
+    "📜Humanities & Law": [
+        "Ethics & Philosophy",
+        "Law",
+        "History",
+        "Languages"
+    ],
+    "🌈Identity & Relationships": [
         "Relationships",
         "Gender & Sexual Orientation",
         "Family & Parenting",
@@ -86,7 +91,7 @@
         "Culture, Race, & Ethnicity",
         "Love & Dating"
     ],
-    "Internet Culture": [
+    "🙉Internet Culture": [
         "Memes",
         "Animals & Pets",
         "Cringe & Facepalm",
@@ -98,7 +103,7 @@
         "Interesting",
         "Oddly Satisfying"
     ],
-    "Movies & TV": [
+    "🎞️Movies & TV": [
         "Comedy Movies & Series",
         "Action Movies & Series",
         "Fantasy Movies & Series",
@@ -114,7 +119,7 @@
         "Horror Movies & Series",
         "Movie News & Discussion"
     ],
-    "Music": [
+    "🎶Music": [
         "Musical Instruments & Singing",
         "Classical Music",
         "Indie & Alternative Music",
@@ -131,14 +136,14 @@
         "Metal Music",
         "Music Production"
     ],
-    "Nature & Outdoors": [
+    "🌿Nature & Outdoors": [
         "Fishing",
         "Camping & Hiking",
         "Hunting",
         "Nature & Wildlife"
     ],
-    "News & Politics": ["News", "Activism", "Politics"],
-    "Places & Travel": [
+    "📰News & Politics": ["News", "Activism", "Politics"],
+    "🌐Places & Travel": [
         "Places in Africa",
         "Places in Europe",
         "Places in Australia & Oceania",
@@ -148,7 +153,7 @@
         "Places in the Middle East",
         "Travel & Holiday"
     ],
-    "Pop Culture": [
+    "✨Pop Culture": [
         "Generations & Nostalgia",
         "Creators & Influencers",
         "Celebrities",
@@ -157,8 +162,8 @@
         "Tarot & Astrology"
     ],
     "Q&As & Stories": ["Stories & Confessions", "Q&As"],
-    "Reading & Writing": ["Comics", "Books & Literature", "Writing"],
-    "Sciences": [
+    "📖Reading & Writing": ["Comics", "Books & Literature", "Writing"],
+    "🧪Sciences": [
         "Biological Sciences",
         "Engineering",
         "Physics",
@@ -172,13 +177,13 @@
         "Chemistry",
         "Space & Astronomy"
     ],
-    "Spooky": [
+    "💀Spooky": [
         "Paranormal & Unexplained",
         "Weird & Unusual",
         "True Crime",
         "Creepy"
     ],
-    "Sports": [
+    "🏅Sports": [
         "Ice Hockey",
         "College Sports",
         "Basketball",
@@ -197,7 +202,7 @@
         "Sports News & Discussion",
         "Other Sports"
     ],
-    "Technology": [
+    "🛰️Technology": [
         "Consumer Electronics",
         "DIY Electronics",
         "Artificial Intelligence & Machine Learning",
@@ -209,21 +214,21 @@
         "Tech News & Discussion",
         "Streaming Services"
     ],
-    "Vehicles": [
+    "🚗Vehicles": [
         "Motorcycles",
         "Cars & Trucks",
         "Boating & Sailing",
         "Aviation",
         "Trains & Public Transportation"
     ],
-    "Wellness": [
+    "🧘Wellness": [
         "Diet & Nutrition",
         "Motivation & Self-Improvement",
         "Fitness",
         "Weight Loss"
     ],
-    "Adult Content": ["Adult Content"],
-    "Mature Topics": [
+    "🟥Adult Content": ["Adult Content"],
+    "🔞Mature Topics": [
         "No Topic/ Other Topic",
         "Guns & Weapons",
         "Smoking & Vaping",
