@@ -766,7 +766,7 @@ def run():
 
     # Get all topics
     TOPICS = {}
-    with open("./topic.json", "r") as fp:
+    with open("./topics.json", "r") as fp:
         data: dict[str, list[str]] = json.load(fp)
         final: list[str] = []
 

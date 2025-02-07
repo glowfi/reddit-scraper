@@ -834,7 +834,7 @@ def run():
         json.dump(trophies, fp)
 
     topic_data = {}
-    with open("./topic.json", "r") as fp:
+    with open("./topics.json", "r") as fp:
         topic_data: dict[str, list[str]] = json.load(fp)
 
     data: dict[str, list[Subreddit]] = {}

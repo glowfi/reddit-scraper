@@ -42,8 +42,8 @@ def split_files():
             arr1.append(i)
         c += 1
 
-    with open("./user_p1.json", "w") as f:
+    with open("./users_p1.json", "w") as f:
         json.dump(arr1, f)
 
-    with open("./user_p2.json", "w") as f:
+    with open("./users_p2.json", "w") as f:
         json.dump(arr2, f)
