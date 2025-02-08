@@ -21,4 +21,4 @@
 # mongoimport -d socialmedia -c posts --file ./posts.json --jsonArray
 # mongoimport -d socialmedia -c awards --file ./awards.json --jsonArray
 # mongoimport -d socialmedia -c trophies --file ./trophies.json --jsonArray
-# mongoimport -d socialmedia -c topics --file ./topic.json --jsonArray
+# mongoimport -d socialmedia -c topics --file ./topics.json --jsonArray
