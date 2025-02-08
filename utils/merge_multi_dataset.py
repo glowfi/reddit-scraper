@@ -3,7 +3,7 @@ import glob
 import sys
 
 file_names = [
-    "topic.json",
+    "topics.json",
     "awards.json",
     "trophies.json",
     "subreddits.json",
@@ -19,7 +19,7 @@ def handleOthers(data, file_name):
         if (
             file_name != "awards.json"
             and file_name != "trophies.json"
-            and file_name != "topic.json"
+            and file_name != "topics.json"
         ):
             id = row.get("id", "")
             if id and id not in seen_id:
@@ -30,7 +30,7 @@ def handleOthers(data, file_name):
     return [json.loads(i) for i in list(st)]
 
 
-multi_dataset_location = ""
+multi_dataset_location = "/home/ayush/cdx/dataset/vox-populi/"
 
 if not multi_dataset_location:
     print("no dataser folder location entered")
@@ -51,7 +51,7 @@ for file_name in file_names:
                     for topic in data:
                         for subreddit in data[topic]:
                             final.append(subreddit)
-                elif file_name == "topic.json":
+                elif file_name == "topics.json":
                     for topic in data:
                         for t in data[topic]:
                             final.append({"topic": t})

@@ -36,50 +36,44 @@ def getSession() -> requests.Session:
 # Fetch trophies
 def fetchTrophies() -> list[Trophies]:
     session = getSession()
+    trophies: list[Trophies] = []
 
-    try:
-        # url = "https://www.reddit.com/wiki/trophies/"
-        url = "https://0x0.st/8P9L.html"
-        html_content = session.get(url)
-        soup = BeautifulSoup(html_content.text, "html5lib")
+    while not trophies:
+        print("Fetching trophies")
+        try:
+            url = "https://www.reddit.com/wiki/trophies/"
+            html_content = session.get(url)
+            soup = BeautifulSoup(html_content.text, "html5lib")
 
-        trophies: list[Trophies] = [
-            {
-                "image_link": "https://a.thumbs.redditmedia.com/GnIq6cHQCTUioRxU4opnYO0PJibxEBb_K3cyln1tXJ0.png",
-                "title": "Bellwether",
-                "description": "Hang out on the new queue and flag carefully",
-            }
-        ]
-        tables = soup.find_all("table")
-        for table in tables:
-            for row in table.find_all("tr"):
-                # Extract image link
-                image_link = row.find("img")["src"] if row.find("img") else None
-                new_trophy: Trophies = {
-                    "description": "",
-                    "image_link": "",
-                    "title": "",
-                }
+            tables = soup.find_all("table")
+            for table in tables:
+                for row in table.find_all("tr"):
+                    # Extract image link
+                    image_link = row.find("img")["src"] if row.find("img") else None
+                    new_trophy: Trophies = {
+                        "description": "",
+                        "image_link": "",
+                        "title": "",
+                    }
 
-                if image_link:
-                    new_trophy["image_link"] = f"https:{image_link}"
-                    text = row.get_text().strip("\n")
-                    title = text.split("\n")[0]
-                    description = (
-                        text.split("\n")[1]
-                        if len(text.split("\n")) > 1
-                        else text.split("\n")[0]
-                    )
-                    new_trophy["title"] = title
-                    new_trophy["description"] = description
+                    if image_link:
+                        new_trophy["image_link"] = f"https:{image_link}"
+                        text = row.get_text().strip("\n")
+                        title = text.split("\n")[0]
+                        description = (
+                            text.split("\n")[1]
+                            if len(text.split("\n")) > 1
+                            else text.split("\n")[0]
+                        )
+                        new_trophy["title"] = title
+                        new_trophy["description"] = description
 
-                    trophies.append(new_trophy)
+                        trophies.append(new_trophy)
 
-        return [json.loads(i) for i in list(set([json.dumps(i) for i in trophies]))]
+        except Exception as e:
+            print(e)
 
-    except Exception as e:
-        print(e)
-        return []
+    return [json.loads(i) for i in list(set([json.dumps(i) for i in trophies]))]
 
 
 class User(TypedDict):
