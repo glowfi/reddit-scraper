@@ -891,7 +891,6 @@ def run():
 
         for post_result in post_results_per_subreddit:
             raw_post_json = post_result.get("posts", {})
-            print(post_result.get("subreddit"))
             posts = [*posts, *getPosts(raw_post_json, awards)]
 
         # Fetch comments from the subreddit_posts

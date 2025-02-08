@@ -808,13 +808,15 @@ def run():
         try:
             res = fetchSubredditsByTopic(SUBREDDIT_SORT_FILTER, 100, topic, acc_token)
             results.append(res)
-            subreddits[topic] = buildSubreddit(
+            sreddits: list[Subreddit] = buildSubreddit(
                 res["subreddits"],
                 topic,
                 TOTAL_SUBREDDITS_PER_TOPICS,
                 False,
                 seen_subreddits,
             )
+            for sreddit in sreddits:
+                subreddits[topic].append(sreddit)
         except Exception as err:
             print(traceback.print_exc())
             print(err)
