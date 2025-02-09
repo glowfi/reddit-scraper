@@ -46,6 +46,7 @@ class Comment(TypedDict):
     body_html: str
     ups: int
     score: int
+    created_utc: int
     replies: list["Comment"]
 
 
@@ -468,6 +469,7 @@ def extract_comments(
                 "body_html": comment_data.get("body_html", ""),
                 "ups": comment_data.get("ups", 0),
                 "score": comment_data.get("score", 0),
+                "created_utc": comment_data.get("created_utc", 0),
                 "replies": [],
             }
             if author and author_fullname:
