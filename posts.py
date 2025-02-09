@@ -837,11 +837,11 @@ def run():
     with open("./topics.json", "r") as fp:
         topic_data: dict[str, list[str]] = json.load(fp)
 
-    data: dict[str, list[Subreddit]] = {}
+    subreddit_data: dict[str, list[Subreddit]] = {}
     with open("./subreddits.json", "r") as fp:
-        data = json.load(fp)
+        subreddit_data = json.load(fp)
 
-    if data:
+    if subreddit_data:
         # Final Users
         subreddit_users: dict[str, list[UserDetail]] = defaultdict(list[UserDetail])
 
@@ -858,10 +858,14 @@ def run():
             sys.exit(1)
 
         post_results_per_subreddit: list[PostResult] = []
+        seen_subreddits: set[str] = set()
 
         # Get new posts of on-demand subreddit
         for on_demand_subreddit in on_demand_subreddits:
             title = on_demand_subreddit.get("title", "")
+            if title.lower() in seen_subreddits:
+                continue
+            seen_subreddits.add(title.lower())
             posts_count = on_demand_subreddit.get("posts_count", 0)
             if not title or not posts_count:
                 continue
@@ -873,9 +877,12 @@ def run():
 
         # Get new posts of topic based subreddit
         if topic_data:
-            for topic in data:
-                for _, subreddit in enumerate(data[topic]):
+            for topic in subreddit_data:
+                for _, subreddit in enumerate(subreddit_data[topic]):
                     title = subreddit.get("title", "")
+                    if title.lower() in seen_subreddits:
+                        continue
+                    seen_subreddits.add(title.lower())
                     posts_result: PostResult = fetchPostsBySubreddt(
                         POSTS_SORT_FILTER, POSTS_PER_SUBREDDIT, title, acc_token
                     )
@@ -944,19 +951,19 @@ def run():
         seen_users: dict[str, User] = {}
 
         # Add moderators to subreddit_members
-        for topic in data:
-            for idx, subreddit in enumerate(data[topic]):
+        for topic in subreddit_data:
+            for idx, subreddit in enumerate(subreddit_data[topic]):
                 subreddit_moderators: list[User] = []
                 for moderator in subreddit.get("moderators", []):
                     moderator_id = moderator.get("id", "")
                     seen_users[moderator_id] = moderator
                     subreddit_moderators.append(moderator)
-                data[topic][idx]["members"] = subreddit_moderators
+                subreddit_data[topic][idx]["members"] = subreddit_moderators
 
         # Add normal subreddit_members
         for subreddit_id, users in subreddit_users.items():
-            for topic in data:
-                for idx, subreddit in enumerate(data[topic]):
+            for topic in subreddit_data:
+                for idx, subreddit in enumerate(subreddit_data[topic]):
                     sub_id = subreddit.get("id", "")
                     if subreddit_id == sub_id:
                         subreddit_members: list[User] = []
@@ -971,26 +978,31 @@ def run():
                                 )
                                 subreddit_members.append(curr_user)
                                 seen_users[user_id] = curr_user
-                        oldMembers = data[topic][idx].get("members", [])
-                        data[topic][idx]["members"] = [*oldMembers, *subreddit_members]
+                        oldMembers = subreddit_data[topic][idx].get("members", [])
+                        subreddit_data[topic][idx]["members"] = [
+                            *oldMembers,
+                            *subreddit_members,
+                        ]
                         if (
-                            "members" in data[topic][idx]
-                            and data[topic][idx]["members"]
+                            "members" in subreddit_data[topic][idx]
+                            and subreddit_data[topic][idx]["members"]
                         ):
-                            data[topic][idx]["members"] = [
+                            subreddit_data[topic][idx]["members"] = [
                                 json.loads(i)
                                 for i in list(
                                     set(
                                         [
                                             json.dumps(j)
-                                            for j in data[topic][idx]["members"]
+                                            for j in subreddit_data[topic][idx][
+                                                "members"
+                                            ]
                                         ]
                                     )
                                 )
                             ]
         # Make subreddit members update
         with open("subreddits.json", "w") as fp:
-            json.dump(data, fp)
+            json.dump(subreddit_data, fp)
 
         # Make users
         tmp_users: list[User] = []
