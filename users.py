@@ -24,7 +24,6 @@ def getSession() -> requests.Session:
     session = requests.session()
     retries = Retry(
         total=5,
-        # total=1,
         backoff_factor=2,  # Exponential backoff
         status_forcelist=[429, 500, 502, 503, 504, 443],
     )
