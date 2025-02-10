@@ -30,7 +30,7 @@ def handleOthers(data, file_name):
     return [json.loads(i) for i in list(st)]
 
 
-multi_dataset_location = "/home/ayush/cdx/dataset/vox-populi/"
+multi_dataset_location = ""
 
 if not multi_dataset_location:
     print("no dataser folder location entered")
