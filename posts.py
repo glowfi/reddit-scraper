@@ -461,6 +461,8 @@ def extract_comments(
             comment_data = comment.get("data", {})
             author = comment_data.get("author", "")
             author_fullname = comment_data.get("author_fullname", "").replace("t2_", "")
+            if author == "AutoModerator" or author == "[deleted]":
+                continue
             extracted_comment: Comment = {
                 "author": author,
                 "author_fullname": author_fullname,
