@@ -230,6 +230,6 @@ def generate_user_info(id: str, name: str, trophies: list[Trophies]) -> User:
         "primarycolor": primaryColor,
         "iconcolor": generate_random_hex_color(),
         "suspended": False,
-        "trophies": random.choices(trophies, k=random.randint(1, 5)),
+        "trophies": random.sample(trophies, random.randint(0, len(trophies) - 1)),
     }
     return new_user

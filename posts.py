@@ -798,7 +798,7 @@ def getPosts(raw_json: Any, awards: list[Awards]) -> list[Post]:
                 else ""
             ),
             "num_comments": post_detail.get("num_comments", 0),
-            "awards": random.choices(awards, k=random.randint(0, 4)),
+            "awards": random.sample(awards, random.randint(0, len(awards) - 1)),
             "text": (
                 post_detail.get("selftext", "")
                 if post_detail.get("selftext", "")
