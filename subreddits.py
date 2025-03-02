@@ -219,6 +219,8 @@ def getToken(params: dict[str, str], timeout: int) -> str:
 def buildSubredditModerators(raw_json: Any, trophies: list[Trophies]) -> list[User]:
     moderators: list[User] = []
     for moderator in raw_json.get("data", {}).get("children", []):
+        if moderator["name"] == "AutoModerator":
+            continue
         moderators.append(
             generate_user_info(
                 moderator["id"].replace("t2_", ""), moderator["name"], trophies
