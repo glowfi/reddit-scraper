@@ -449,7 +449,7 @@ def handleURL(encodedURL: str):
 
 def extract_comments(
     comments_raw_json: Any,
-    users: dict[str, list[UserDetail]],
+    users: dict[str, set[str]],
     subreddit_id: str,
     subreddit: str,
 ) -> tuple[list[Comment], int]:
@@ -461,7 +461,7 @@ def extract_comments(
             comment_data = comment.get("data", {})
             author = comment_data.get("author", "")
             author_fullname = comment_data.get("author_fullname", "").replace("t2_", "")
-            if author == "AutoModerator" or author == "[deleted]":
+            if author == "[deleted]":
                 continue
             extracted_comment: Comment = {
                 "author": author,
@@ -475,13 +475,15 @@ def extract_comments(
                 "replies": [],
             }
             if author and author_fullname:
-                users[subreddit_id].append(
-                    {
-                        "id": author_fullname,
-                        "name": author,
-                        "subreddit_id": subreddit_id,
-                        "subreddit": subreddit,
-                    }
+                users[subreddit_id].add(
+                    json.dumps(
+                        {
+                            "id": author_fullname,
+                            "name": author,
+                            "subreddit_id": subreddit_id,
+                            "subreddit": subreddit,
+                        }
+                    )
                 )
 
             replies = comment_data.get("replies", {})
@@ -798,7 +800,7 @@ def getPosts(raw_json: Any, awards: list[Awards]) -> list[Post]:
                 else ""
             ),
             "num_comments": post_detail.get("num_comments", 0),
-            "awards": random.sample(awards, random.randint(0, len(awards) - 1)),
+            "awards": random.sample(awards, random.randint(0, 3)),
             "text": (
                 post_detail.get("selftext", "")
                 if post_detail.get("selftext", "")
@@ -817,6 +819,19 @@ def getPosts(raw_json: Any, awards: list[Awards]) -> list[Post]:
         posts.append(new_post)
 
     return posts
+
+
+def removeDuplicateUser(users: list[User]) -> list[User]:
+    seen_users: dict[str, bool] = {}
+    final_users: list[User] = []
+
+    for user in users:
+        user_name = user.get("name", "")
+        if user_name not in seen_users:
+            final_users.append(user)
+            seen_users[user_name] = True
+
+    return final_users
 
 
 def run():
@@ -847,7 +862,7 @@ def run():
 
     if subreddit_data:
         # Final Users
-        subreddit_users: dict[str, list[UserDetail]] = defaultdict(list[UserDetail])
+        subreddit_users: dict[str, set[str]] = defaultdict(set[str])
 
         # Final Posts
         posts: list[Post] = []
@@ -934,16 +949,21 @@ def run():
                     raw_json_post.get("post", [])[1].get("data", {}).get("children", [])
                 )
                 if post["author"] and post["author_fullname"]:
-                    subreddit_users[subreddit_id].append(
-                        {
-                            "subreddit_id": "",
-                            "subreddit": "",
-                            "id": post["author_fullname"],
-                            "name": post["author"],
-                        }
+                    subreddit_users[subreddit_id].add(
+                        json.dumps(
+                            {
+                                "subreddit_id": "",
+                                "subreddit": "",
+                                "id": post["author_fullname"],
+                                "name": post["author"],
+                            }
+                        )
                     )
                 comments, num_comments = extract_comments(
-                    post_detail_comment, subreddit_users, subreddit_id, subreddit
+                    post_detail_comment,
+                    subreddit_users,
+                    subreddit_id,
+                    subreddit,
                 )
                 post["comments"] = comments
                 post["num_comments"] = num_comments
@@ -965,7 +985,14 @@ def run():
                 subreddit_data[topic][idx]["members"] = subreddit_moderators
 
         # Add normal subreddit_members
-        for subreddit_id, users in subreddit_users.items():
+        sub_users: dict[str, list[UserDetail]] = defaultdict(list[UserDetail])
+        for subreddit_id in subreddit_users:
+            users: list[UserDetail] = [
+                json.loads(user) for user in subreddit_users[subreddit_id]
+            ]
+            sub_users[subreddit_id] = users
+
+        for subreddit_id, users in sub_users.items():
             for topic in subreddit_data:
                 for idx, subreddit in enumerate(subreddit_data[topic]):
                     sub_id = subreddit.get("id", "")
@@ -987,19 +1014,17 @@ def run():
                             *oldMembers,
                             *subreddit_members,
                         ]
-                        if (
-                            "members" in subreddit_data[topic][idx]
-                            and subreddit_data[topic][idx]["members"]
-                        ):
+                        members: list[User] = subreddit_data[topic][idx].get(
+                            "members", []
+                        )
+                        if members:
                             subreddit_data[topic][idx]["members"] = [
-                                json.loads(i)
-                                for i in list(
+                                json.loads(members)
+                                for members in list(
                                     set(
                                         [
                                             json.dumps(j)
-                                            for j in subreddit_data[topic][idx][
-                                                "members"
-                                            ]
+                                            for j in removeDuplicateUser(members)
                                         ]
                                     )
                                 )
