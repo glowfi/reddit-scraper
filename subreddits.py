@@ -57,7 +57,7 @@ class Subreddit(TypedDict, total=False):
     public_description: str
     community_icon: str
     banner_background_image: str
-    category: str
+    topic: str
     rules: list[SubredditRule]
     flairs: list[SubredditFlair]  # *[oauth required]
     user_flairs: list[SubredditFlair]  # *[oauth required]
@@ -629,7 +629,7 @@ def buildSubreddit(
         ) or handleURL(
             subreddit.get("banner_background_image", ""),
         )
-        new_subreddit["category"] = topic
+        new_subreddit["topic"] = topic
 
         # Colors
         new_subreddit["key_color"] = subreddit.get("key_color", "")
@@ -696,7 +696,7 @@ def buildSubreddit(
                 ) or handleURL(
                     subreddit.get("banner_background_image", ""),
                 )
-                new_subreddit["category"] = topic
+                new_subreddit["topic"] = topic
 
                 # Colors
                 new_subreddit["key_color"] = subreddit.get("key_color", "")
