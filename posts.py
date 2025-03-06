@@ -765,6 +765,9 @@ def getPosts(raw_json: Any, awards: list[Awards]) -> list[Post]:
     for unprocessed_post in unprocessed_posts:
         post_detail = unprocessed_post.get("data", {})
 
+        if post_detail.get("author", "") == "[deleted]":
+            continue
+
         txt, txtHTML = "", ""
         if "crosspost_parent_list" in post_detail:
             txt = post_detail.get("crosspost_parent_list", [])
