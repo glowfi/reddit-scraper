@@ -503,14 +503,21 @@ def extract_comments(
 
 
 def getMedia(post_detail: Any) -> Media_Content:
+    base_url: str = "https://www.reddit.com"
+    permalink: str = base_url + post_detail.get("permalink", "").rstrip("/")
+    url: str = post_detail.get("url", "").rstrip("/")
+    url_overridden_by_dest: str = post_detail.get("url_overridden_by_dest", "").rstrip(
+        "/"
+    )
+
     # Link
-    postBody = post_detail.get("selftext", "")
-    postHTML = post_detail.get("selftext_html", "")
     if (
-        not postBody
-        and not postHTML
+        permalink != url
+        and url_overridden_by_dest == url
         and "https://i.redd.it" not in post_detail.get("url", "")
-        and "secure_media" not in post_detail
+        and not post_detail.get("secure_media", {})
+        and not post_detail.get("media_metadata", {})
+        and not post_detail.get("is_gallery", False)
     ):
         new_link: Link = {
             "id": str(uuid.uuid4()),
