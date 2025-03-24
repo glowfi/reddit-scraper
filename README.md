@@ -3,7 +3,7 @@
 </p>
 
 <p align="center">
-<img src="./images/logo.webp"/>
+<img src="./images/logo.png"/>
 </p>
 
 ## Dependencies
