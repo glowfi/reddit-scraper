@@ -38,7 +38,7 @@ def fetchTrophies() -> list[Trophies]:
     trophies: list[Trophies] = []
 
     while not trophies:
-        print("Fetching trophies")
+        print("Fetching trophies ...")
         try:
             url = "https://www.reddit.com/wiki/trophies/"
             html_content = session.get(url)

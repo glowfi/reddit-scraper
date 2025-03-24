@@ -22,7 +22,7 @@ from colorama import Fore, Style
 from bs4 import BeautifulSoup
 from dotenv import dotenv_values
 
-from subreddits import Subreddit, writeResult
+from subreddits import Subreddit
 from users import User, generate_user_info, Trophies, fetchTrophies
 
 
@@ -111,6 +111,7 @@ class Link(TypedDict):
     id: str
     link: str
     _type: str
+    image: Image
 
 
 class Media_Content(TypedDict, total=False):
@@ -180,7 +181,9 @@ class OnDemandSubreddit(TypedDict):
 
 # Set up logging
 logging.basicConfig(
-    filename="api_requests.log", level=logging.INFO, format="%(message)s"
+    filename="scraper.log",
+    level=logging.INFO,
+    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
 )
 
 # Load DOTENV
@@ -447,13 +450,12 @@ def handleURL(encodedURL: str):
         return urllib.parse.unquote(html.unescape(encodedURL))
 
 
-def extract_comments(
+def buildComments(
     comments_raw_json: Any,
     users: dict[str, set[str]],
     subreddit_id: str,
     subreddit: str,
 ) -> tuple[list[Comment], int]:
-    logging.info("Extracting comments")
     extracted_comments: list[Comment] = []
     num_comments = 0
     for comment in comments_raw_json:
@@ -489,7 +491,7 @@ def extract_comments(
             replies = comment_data.get("replies", {})
             num_comments += 1
             if isinstance(replies, dict):
-                replies, _num_comments = extract_comments(
+                replies, _num_comments = buildComments(
                     replies.get("data", {}).get("children", []),
                     users,
                     subreddit_id,
@@ -498,11 +500,10 @@ def extract_comments(
                 extracted_comment["replies"] = replies
                 num_comments += _num_comments
             extracted_comments.append(extracted_comment)
-    logging.info("Successfully extracted comments")
     return (extracted_comments, num_comments)
 
 
-def getMedia(post_detail: Any) -> Media_Content:
+def buildMedia(post_detail: Any) -> Media_Content:
     base_url: str = "https://www.reddit.com"
     permalink: str = base_url + post_detail.get("permalink", "").rstrip("/")
     url: str = post_detail.get("url", "").rstrip("/")
@@ -519,11 +520,49 @@ def getMedia(post_detail: Any) -> Media_Content:
         and not post_detail.get("media_metadata", {})
         and not post_detail.get("is_gallery", False)
     ):
+        link_image_content: Image = {
+            "id": str(uuid.uuid4()),
+            "resolutions": [],
+            "_type": "image",
+        }
         new_link: Link = {
             "id": str(uuid.uuid4()),
             "link": post_detail.get("url", ""),
             "_type": "link",
+            "image": link_image_content,
         }
+        if (
+            post_detail.get("preview", {}).get("images")
+            and isinstance(post_detail.get("preview", {}).get("images"), list)
+            and len(post_detail.get("preview", {}).get("images", [])) > 0
+        ):
+            images = (
+                post_detail.get("preview", {}).get("images")[0].get("resolutions", [])
+            )
+            images = sorted(images, key=lambda x: x["height"])
+            sourceImage = (
+                post_detail.get("preview", {}).get("images")[0].get("source", {})
+            )
+            for image in images:
+                if image.get("url", ""):
+                    new_image_resolution: ImageResolution = {
+                        "height": image.get("height", 0),
+                        "width": image.get("width", 0),
+                        "url": handleURL(image["url"]),
+                    }
+                    link_image_content.get("resolutions", []).append(
+                        new_image_resolution
+                    )
+            if sourceImage and sourceImage.get("url", ""):
+                link_image_content.get("resolutions", []).append(
+                    {
+                        "height": sourceImage.get("height", 0),
+                        "width": sourceImage.get("width", 0),
+                        "url": handleURL(sourceImage["url"]),
+                    }
+                )
+            if len(link_image_content.get("resolutions", [])) > 0:
+                new_link["image"] = link_image_content
         return {
             "_type": "link",
             "content": new_link,
@@ -765,7 +804,7 @@ def getMedia(post_detail: Any) -> Media_Content:
     return {}
 
 
-def getPosts(raw_json: Any, awards: list[Awards]) -> list[Post]:
+def buildPosts(raw_json: Any, awards: list[Awards]) -> list[Post]:
     posts: list[Post] = []
     unprocessed_posts = raw_json.get("data", {}).get("children", [])
 
@@ -774,6 +813,10 @@ def getPosts(raw_json: Any, awards: list[Awards]) -> list[Post]:
 
         if post_detail.get("author", "") == "[deleted]":
             continue
+
+        logging.info(
+            f"builidng post with title {post_detail.get("title", "")} and id {post_detail.get("id", "")}"
+        )
 
         txt, txtHTML = "", ""
         if "crosspost_parent_list" in post_detail:
@@ -827,6 +870,9 @@ def getPosts(raw_json: Any, awards: list[Awards]) -> list[Post]:
             "media_content": {},
         }
         posts.append(new_post)
+        logging.info(
+            f"finished builidng post with title {post_detail.get("title", "")} and id {post_detail.get("id", "")}"
+        )
 
     return posts
 
@@ -918,16 +964,12 @@ def run():
                     if posts_result.get("posts", {}):
                         post_results_per_subreddit.append(posts_result)
 
-        with open("request_status.txt", "a") as f:
-            for result in post_results_per_subreddit:
-                writeResult(
-                    result["subreddit"] + " posts-per-subreddit", result["result_state"]
-                )
-            f.write("\n")
-
         for post_result in post_results_per_subreddit:
             raw_post_json = post_result.get("posts", {})
-            posts = [*posts, *getPosts(raw_post_json, awards)]
+            subreddit_title = post_result.get("subreddit")
+            logging.info(f"builidng all post for subreddit {subreddit_title}")
+            posts = [*posts, *buildPosts(raw_post_json, awards)]
+            logging.info(f"finished builidng all post for subreddit {subreddit_title}")
 
         # Fetch comments from the subreddit_posts
         for post in posts:
@@ -935,13 +977,6 @@ def run():
             subreddit_id = post.get("subreddit_id", "")
             post_id = post.get("id", "")
             raw_json_post = fetchPostArticleByPostID(subreddit, post_id, acc_token)
-            with open("request_status.txt", "a") as f:
-                for result in post_results_per_subreddit:
-                    writeResult(
-                        result["subreddit"] + f" post-by-id {post_id}",
-                        result["result_state"],
-                    )
-                f.write("\n")
             if raw_json_post.get("post", []) and isinstance(
                 raw_json_post.get("post", []), list
             ):
@@ -952,7 +987,13 @@ def run():
                     .get("children", [])[0]
                     .get("data", {})
                 )
-                post["media_content"] = getMedia(post_detail_media)
+                logging.info(
+                    f"building media for post with title {post.get("title", "")} and id {post_id}"
+                )
+                post["media_content"] = buildMedia(post_detail_media)
+                logging.info(
+                    f"finished building media for post with title {post.get("title", "")} and id {post_id}"
+                )
 
                 # Comment
                 post_detail_comment = (
@@ -969,7 +1010,10 @@ def run():
                             }
                         )
                     )
-                comments, num_comments = extract_comments(
+                logging.info(
+                    f"building comments for post with title {post.get("title", "")} and id {post_id}"
+                )
+                comments, num_comments = buildComments(
                     post_detail_comment,
                     subreddit_users,
                     subreddit_id,
@@ -977,6 +1021,9 @@ def run():
                 )
                 post["comments"] = comments
                 post["num_comments"] = num_comments
+                logging.info(
+                    f"finished building comments for post with title {post.get("title", "")} and id {post_id}"
+                )
 
         # Make posts
         with open("posts.json", "w") as fp:

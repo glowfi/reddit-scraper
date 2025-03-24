@@ -112,7 +112,9 @@ class SubredditModeratorsResult(TypedDict):
 
 # Set up logging
 logging.basicConfig(
-    filename="api_requests.log", level=logging.INFO, format="%(message)s"
+    filename="scraper.log",
+    level=logging.INFO,
+    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
 )
 
 # Load DOTENV
@@ -617,6 +619,8 @@ def buildSubreddit(
         seen_subreddit.add(subreddit_title)
         new_subreddit: Subreddit = {}
 
+        logging.info(f"building subreddit {subreddit_title}")
+
         # Basic info
         new_subreddit["id"] = subreddit.get("name", "").replace("t5_", "")
         new_subreddit["title"] = subreddit_title
@@ -658,6 +662,7 @@ def buildSubreddit(
         new_subreddit["spoilers_enabled"] = subreddit.get("spoilers_enabled", False)
 
         subreddits.append(new_subreddit)
+        logging.info(f"finished building subreddit {subreddit_title}")
         return subreddits
     else:
         subreddit = raw_json.get("data", {}).get("children", {})
@@ -669,6 +674,8 @@ def buildSubreddit(
             if subreddit_title in seen_subreddit:
                 continue
             seen_subreddit.add(subreddit_title)
+
+            logging.info(f"building subreddit {subreddit_title}")
 
             subreddit = child.get("data", {}).get("sr_detail")
             if (
@@ -730,18 +737,9 @@ def buildSubreddit(
 
                 c += 1
 
+                logging.info(f"finished building subreddit {subreddit_title}")
+
         return subreddits
-
-
-def writeResult(
-    id: str,
-    result: ResultState,
-):
-    with open("request_status.txt", "a") as f:
-        f.write(
-            f"{id}, Status Code: {result['status_code']}, Success: {result['success']}, Error: {result['error']}\n"
-        )
-        f.write("\n")
 
 
 def run():
@@ -822,11 +820,6 @@ def run():
             print(err)
             sys.exit(1)
 
-    with open("request_status.txt", "a") as f:
-        for result in results:
-            writeResult(result["topic"], result["result_state"])
-        f.write("\n")
-
     # Rules
     results1: list[SubredditRulesResult] = []
     for topic in subreddits:
@@ -836,18 +829,16 @@ def run():
                 raw_json_rules = fetchSubredditRules(title, acc_token)
                 results1.append(raw_json_rules)
                 if raw_json_rules.get("rules", ""):
+                    logging.info(f"building rules for subreddit {title}")
                     subreddits[topic][idx]["rules"] = buildSubredditRules(
                         raw_json_rules.get("rules")
                     )
+                    logging.info(f"finished building rules for subreddit {title}")
                 else:
                     subreddits[topic][idx]["rules"] = []
             except Exception:
                 print(traceback.print_exc())
                 sys.exit(1)
-    with open("request_status.txt", "a") as f:
-        for result in results1:
-            writeResult(result["subreddit"] + "rule", result["result_state"])
-        f.write("\n")
 
     # Get Flairs
     results2: list[SubredditFlairsResult] = []
@@ -858,18 +849,16 @@ def run():
                 raw_json_flairs = fetchSubredditFlairs(title, acc_token)
                 results2.append(raw_json_flairs)
                 if raw_json_flairs.get("flairs", ""):
+                    logging.info(f"building flairs for subreddit {title}")
                     subreddits[topic][idx]["flairs"] = buildSubredditFlairs(
                         raw_json_flairs.get("flairs")
                     )
+                    logging.info(f"finised building flairs for subreddit {title}")
                 else:
                     subreddits[topic][idx]["flairs"] = []
             except Exception:
                 print(traceback.print_exc())
                 sys.exit(1)
-    with open("request_status.txt", "a") as f:
-        for result in results2:
-            writeResult(result["subreddit"] + "flair", result["result_state"])
-        f.write("\n")
 
     # Get User Flairs
     results3: list[SubredditFlairsResult] = []
@@ -880,18 +869,16 @@ def run():
                 raw_json_user_flairs = fetchSubredditFlairsUser(title, acc_token)
                 results3.append(raw_json_user_flairs)
                 if raw_json_user_flairs.get("flairs", ""):
+                    logging.info(f"building user flairs for subreddit {title}")
                     subreddits[topic][idx]["user_flairs"] = buildSubredditFlairs(
                         raw_json_user_flairs.get("flairs")
                     )
+                    logging.info(f"finised building user flairs for subreddit {title}")
                 else:
                     subreddits[topic][idx]["user_flairs"] = []
             except Exception:
                 print(traceback.print_exc())
                 sys.exit(1)
-    with open("request_status.txt", "a") as f:
-        for result in results3:
-            writeResult(result["subreddit"] + "user-flair", result["result_state"])
-        f.write("\n")
 
     # Get Moderators
     results4: list[SubredditModeratorsResult] = []
@@ -902,18 +889,16 @@ def run():
                 raw_json_moderators = fetchSubredditModerators(title, acc_token)
                 results4.append(raw_json_moderators)
                 if raw_json_moderators.get("moderators", ""):
+                    logging.info(f"building moderators for subreddit {title}")
                     subreddits[topic][idx]["moderators"] = buildSubredditModerators(
                         raw_json_moderators.get("moderators"), trophies
                     )
+                    logging.info(f"finished building moderators for subreddit {title}")
                 else:
                     subreddits[topic][idx]["moderators"] = []
             except Exception:
                 print(traceback.print_exc())
                 sys.exit(1)
-    with open("request_status.txt", "a") as f:
-        for result in results4:
-            writeResult(result["subreddit"] + "moderators", result["result_state"])
-        f.write("\n")
 
     with open("subreddits.json", "w") as fp:
         sorted_subreddits = dict(sorted(subreddits.items()))
