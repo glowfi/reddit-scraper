@@ -2,8 +2,7 @@
 
 find . | grep *__pycache__/ | xargs -I "{}" rm -rf "{}"
 rm -rf __pycache__
-rm -rf request_status.txt
-rm -rf api_requests.log
+rm -rf scraper.log
 rm -rf subreddits.json
 rm -rf subreddits_p1.json
 rm -rf posts.json
