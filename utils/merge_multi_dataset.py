@@ -1,6 +1,7 @@
 import json
 import glob
 import sys
+import html
 
 import re
 from typing import DefaultDict
@@ -12,7 +13,7 @@ def replace_all_occurences_in_a_string(text, replacements):
     for to_replace, replace_with in replacements.items():
         pattern = re.compile(re.escape(to_replace), re.IGNORECASE)
         text = pattern.sub(replace_with, text)
-    return text
+    return html.unescape(text)
 
 
 file_names = [
