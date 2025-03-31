@@ -714,7 +714,7 @@ def buildMedia(post_detail: Any) -> Media_Content:
                         {
                             "width": gif.get("width", 0),
                             "height": gif.get("height", 0),
-                            "url": gif.get("url", ""),
+                            "url": handleURL(gif.get("url", "")),
                         }
                     )
             return {"_type": "gif", "content": gif_content}
