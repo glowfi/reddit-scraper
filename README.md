@@ -33,7 +33,7 @@ A modular Reddit scraping tool that collects data about **subreddits**, **posts*
 
 ## 📂 Output Data Structure
 
-The scraper produces JSON files representing:
+> Sample JSON file sizes are big about 16-25mb each ,download them as browser will take time to load them.
 
 ### **Subreddit document example**
 
@@ -121,7 +121,7 @@ This will:
 1. Scrape subreddits
 2. Scrape posts
 3. Scrape users
-4. Save all data in `json/`
+4. Save all data in this directory
 5. (Optional) Split files for MongoDB import
 
 ---
