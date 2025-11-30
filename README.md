@@ -1,74 +1,153 @@
-<p align="center">
-<b>Reddit Scrapper</b>
-</p>
+# Reddit Scraper
 
 <p align="center">
-<img src="./images/logo.png"/>
+  <img src="./images/logo.png" alt="Project Logo" width=400/>
 </p>
 
-## Dependencies
+A modular Reddit scraping tool that collects data about **subreddits**, **posts**, and **users**, and exports everything as structured **JSON** files for easy processing or database import.
 
--   Python 3.9+
--   Python dependencies listed in requirements files.
+---
 
-## Data scraped
+## 🚀 Features
 
-Scrapes for following data and **outputs json data**:
+- Scrapes:
+    - ✔️ Subreddits
+    - ✔️ Posts
+    - ✔️ Users (kindof)
 
-Output will be stored in **directory named json**, it will be automatically
-created after scraping is completed.
+- Outputs clean, structured **JSON** data
+- Includes tools to:
+    - Split large JSON files into smaller chunks
+    - Import JSON data into MongoDB
 
-## Example Data
+- Fully automated workflow via `run.py`
 
-> A single Subreddit document look like this
+---
 
-![One Subreddits document example](./images/subreddits.png)
+## 📦 Dependencies
 
-> A single Post document look like this
+- **Python 3.9+**
+- Packages listed in `requirements.txt`
 
-![One Posts document example](./images/posts.png)
+---
 
-> A single User document look like this
+## 📂 Output Data Structure
 
-![One Users document example](./images/users.png)
+The scraper produces JSON files representing:
 
-## Scripts Usage
+### **Subreddit document example**
 
--   **subreddits.py (Scrapes Subreddits)**
--   **posts.py (Scrapes Posts)**
--   **users.py (Scrapes Users)**
--   **utils/split.py (To make it easier to import JSON data into databases like MongoDB, this will split the data into smaller chunks of json files prefixed by users_p1,users_p2,... so on)**
--   **utils/import_data_to_mongodb.sh (Imports json data to MongoDB)**
--   **run.py (Runs all the above script one by one)**
+![Subreddit example](./images/subreddits.png)
 
-## Running the Script
+Sample JSON:
+[https://files.catbox.moe/r7a7um.json](https://files.catbox.moe/r7a7um.json)
 
-> Installing dependencies and activating a virtual environment
+### **Post document example**
+
+![Post example](./images/posts.png)
+
+Sample JSON:
+[https://files.catbox.moe/5cf2xw.json](https://files.catbox.moe/5cf2xw.json)
+
+### **User document example**
+
+![User example](./images/users.png)
+
+Sample JSON:
+[https://files.catbox.moe/yp506n.json](https://files.catbox.moe/yp506n.json)
+
+---
+
+## 🛠️ Script Overview
+
+| Script                            | Description                                         |
+| --------------------------------- | --------------------------------------------------- |
+| `subreddits.py`                   | Scrapes subreddit metadata                          |
+| `posts.py`                        | Scrapes posts from each subreddit                   |
+| `users.py`                        | Scrapes user information                            |
+| `utils/split.py`                  | Splits large JSON files into import-friendly chunks |
+| `utils/import_data_to_mongodb.sh` | Imports JSON chunks into MongoDB                    |
+| `run.py`                          | Runs all scrapers sequentially                      |
+
+---
+
+## ⚙️ Installation & Setup
+
+### 1. Clone the repository & create a virtual environment
 
 ```sh
 pip install virtualenv
 git clone https://github.com/glowfi/reddit-scraper
 cd reddit-scraper
+
 python -m venv env
-source ./env/bin/<Choose activation script Based on your OS>
-pip install -r ./requirements
+source env/bin/activate   # Linux / macOS
+# or: env\Scripts\activate  # Windows PowerShell
+
+pip install -r requirements.txt
 ```
 
-> Edit the env-sample and rename it into .env
+---
 
-```sh
+### 2. Configure environment variables
+
+Edit the file **`env-sample`**, then rename it to **`.env`**:
+
+```env
 username=<RedditUsername>
 password=<RedditPassword>
-client_id=<Get_it_from_reddit_api>
-client_secret=<Get_it_from_reddit_api>
-TOTAL_SUBREDDITS_PER_TOPICS = 6
-SUBREDDIT_SORT_FILTER = "hot"
-POSTS_PER_SUBREDDIT = 10
-POSTS_SORT_FILTER = "new"
+client_id=<Reddit API Client ID>
+client_secret=<Reddit API Client Secret>
+
+TOTAL_SUBREDDITS_PER_TOPICS=6
+SUBREDDIT_SORT_FILTER="hot"
+POSTS_PER_SUBREDDIT=10
+POSTS_SORT_FILTER="new"
 ```
 
-> Execute the script
+> Ensure your Reddit app is created at:
+> [https://www.reddit.com/prefs/apps](https://www.reddit.com/prefs/apps)
+
+---
+
+### 3. Run the scraper
 
 ```sh
 ./run.py
 ```
+
+This will:
+
+1. Scrape subreddits
+2. Scrape posts
+3. Scrape users
+4. Save all data in `json/`
+5. (Optional) Split files for MongoDB import
+
+---
+
+## 🗄️ Importing Data Into MongoDB
+
+After scraping, use the helper script:
+
+```sh
+./utils/import_data_to_mongodb.sh
+```
+
+Make sure your MongoDB service is running beforehand.
+
+---
+
+## 💡 Notes
+
+- API limits apply; use reasonable configuration values
+- Scraping speed depends on your network & Reddit API rate limiting
+- JSON outputs are ready for further processing (ML, analytics, etc.)
+
+---
+
+## 🤝 Contributing
+
+Pull requests, issue reports, and improvements are welcome!
+
+---
