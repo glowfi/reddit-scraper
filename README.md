@@ -8,12 +8,12 @@ A modular Reddit scraping tool that collects data about **subreddits**, **posts*
 
 ---
 
-## 🚀 Features
+## Features
 
 - Scrapes:
-    - ✔️ Subreddits
-    - ✔️ Posts
-    - ✔️ Users (kindof)
+    - Subreddits
+    - Posts
+    - Users
 
 - Outputs clean, structured **JSON** data
 - Includes tools to:
@@ -24,41 +24,38 @@ A modular Reddit scraping tool that collects data about **subreddits**, **posts*
 
 ---
 
-## 📦 Dependencies
+## Dependencies
 
 - **Python 3.9+**
 - Packages listed in `requirements.txt`
 
 ---
 
-## 📂 Output Data Structure
+## Output Data Structure
 
-> Sample JSON file sizes are big about 16-25mb each ,download them as browser will take time to load them.
+> Sample JSON files are large (16-25MB each). Download them rather than viewing in browser.
 
-### **Subreddit document example**
+### Subreddit Document Example
 
 ![Subreddit example](./images/subreddits.png)
 
-Sample JSON:
-[https://files.catbox.moe/r7a7um.json](https://files.catbox.moe/r7a7um.json)
+Sample JSON: [https://files.catbox.moe/r7a7um.json](https://files.catbox.moe/r7a7um.json)
 
-### **Post document example**
+### Post Document Example
 
 ![Post example](./images/posts.png)
 
-Sample JSON:
-[https://files.catbox.moe/5cf2xw.json](https://files.catbox.moe/5cf2xw.json)
+Sample JSON: [https://files.catbox.moe/5cf2xw.json](https://files.catbox.moe/5cf2xw.json)
 
-### **User document example**
+### User Document Example
 
 ![User example](./images/users.png)
 
-Sample JSON:
-[https://files.catbox.moe/yp506n.json](https://files.catbox.moe/yp506n.json)
+Sample JSON: [https://files.catbox.moe/yp506n.json](https://files.catbox.moe/yp506n.json)
 
 ---
 
-## 🛠️ Script Overview
+## Script Overview
 
 | Script                            | Description                                         |
 | --------------------------------- | --------------------------------------------------- |
@@ -71,7 +68,7 @@ Sample JSON:
 
 ---
 
-## ⚙️ Installation & Setup
+## Installation & Setup
 
 ### 1. Clone the repository & create a virtual environment
 
@@ -105,8 +102,7 @@ POSTS_PER_SUBREDDIT=10
 POSTS_SORT_FILTER="new"
 ```
 
-> Ensure your Reddit app is created at:
-> [https://www.reddit.com/prefs/apps](https://www.reddit.com/prefs/apps)
+> Create your Reddit app at: [https://www.reddit.com/prefs/apps](https://www.reddit.com/prefs/apps)
 
 ---
 
@@ -121,12 +117,12 @@ This will:
 1. Scrape subreddits
 2. Scrape posts
 3. Scrape users
-4. Save all data in this directory
+4. Save all data in the output directory
 5. (Optional) Split files for MongoDB import
 
 ---
 
-## 🗄️ Importing Data Into MongoDB
+## Importing Data Into MongoDB
 
 After scraping, use the helper script:
 
@@ -138,16 +134,14 @@ Make sure your MongoDB service is running beforehand.
 
 ---
 
-## 💡 Notes
+## Notes
 
 - API limits apply; use reasonable configuration values
-- Scraping speed depends on your network & Reddit API rate limiting
+- Scraping speed depends on your network and Reddit API rate limiting
 - JSON outputs are ready for further processing (ML, analytics, etc.)
 
 ---
 
-## 🤝 Contributing
+## Contributing
 
 Pull requests, issue reports, and improvements are welcome!
-
----
